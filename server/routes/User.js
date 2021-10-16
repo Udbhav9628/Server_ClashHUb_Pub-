@@ -7,6 +7,7 @@ const Userlogin = require("../model/Userlogin");
 const { body, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 var jwt = require("jsonwebtoken");
+const fetchuser = require("../Middleware/GetuserDetails");
 
 dotenv.config({ path: path.join(__dirname, "config.env") });
 Jwt_screat = process.env.JWTSCREAT;
@@ -16,7 +17,7 @@ route.get("/", (req, res) => {
   res.send("Home Route");
 });
 
-//Creating user, Does not require autentication
+//Creating user/Registering User | Login Not Required
 route.post(
   "/createuser",
   [
@@ -62,7 +63,7 @@ route.post(
   }
 );
 
-//Login User EndPoint
+//Login User EndPoint | Login Not Required
 route.post(
   "/Loginuser",
   [
@@ -105,5 +106,17 @@ route.post(
     }
   }
 );
+
+//Post request Get Loggedin User Details | Login Required
+route.post("/GetuserDetails", fetchuser, async (req, res) => {
+  try {
+    const userid = req.user.id;
+    const user = await Userlogin.findById(userid).select();
+    res.send(user)
+
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
 
 module.exports = route;

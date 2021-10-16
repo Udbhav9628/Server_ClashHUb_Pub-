@@ -3,7 +3,7 @@ const route = express.Router();
 const path = require("path");
 const dotenv = require("dotenv");
 const Userlogin = require("../model/Userlogin");
-const Notes = require("../model/Notes");
+// const Notes = require("../model/Notes");
 const { body, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 var jwt = require("jsonwebtoken");
@@ -49,14 +49,56 @@ route.post(
             const Jwtdata = {
               id: Newuser.id,
             };
-            console.log("User Id" , Newuser.id);
             const Auth_Token = jwt.sign(Jwtdata, Jwt_screat);
-            console.log("Jwt Data" , Auth_Token);
-            res.json({Auth_Token});
+            res.json({ Auth_Token });
           })
           .catch((error) => {
             res.send({ Message: error.message });
           });
+      }
+    } catch (error) {
+      res.status(500).send(error.message);
+    }
+  }
+);
+
+//Login User EndPoint
+route.post(
+  "/Loginuser",
+  [
+    body("Email", "Enter a valid Email").isEmail(), // Express-validator
+    body("Password").isLength({ min: 5 }),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      let user = await Userlogin.findOne({ Email: req.body.Email });
+      if (!user) {
+        return res
+          .status(500)
+          .json({ Message: "Login With Correct Credientals Please" });
+      } else {
+        const PassWord_comp = await bcrypt.compare(
+          req.body.Password,
+          user.Password
+        );
+        if (!PassWord_comp) {
+          res
+            .status(500)
+            .json({ Message: "Login With Correct Credientals Please" });
+          return;
+        } else {
+          //Giving PayLoad To Jwt
+          const PayLoad = {
+            id: user.id,
+          };
+          const Auth_Token = jwt.sign(PayLoad, Jwt_screat);
+          res.json({ Auth_Token });
+        }
       }
     } catch (error) {
       res.status(500).send(error.message);

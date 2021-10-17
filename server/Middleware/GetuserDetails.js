@@ -13,7 +13,7 @@ const fetchuser = (req, res, next)=>{
     //try for may be we have token but in case it is not valid catch will show error
     try {
         const data = jwt.verify(Token, process.env.JWTSCREAT)
-        req.user = data
+        req.user = data  //Data is comming from payload provided while login in User.js , 2nd Route
         next(); 
     } catch (error) {
         res.status(500).send(error.message)

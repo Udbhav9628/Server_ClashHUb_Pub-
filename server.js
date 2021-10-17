@@ -19,6 +19,7 @@ app.use(express.urlencoded({
 }));
 
 app.use('/',require('./server/routes/User'));
+app.use('/',require('./server/routes/Notes'));
 
 app.listen(port,()=>{
   console.log("The server is running at poort 8000");

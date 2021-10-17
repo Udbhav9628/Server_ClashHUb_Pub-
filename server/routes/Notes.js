@@ -40,14 +40,35 @@ route.post(
   }
 );
 
-
 //| Login Required |Taking the logedin user id from Header Auth token and filter the particular user notes and show them
 //CRUD - Read
 route.get("/FetchAllNotes", fetchuser, async (req, res) => {
   try {
     const userid = req.user.id;
-    const notes = await Notes.find({ User: userid});
-    res.send(notes);
+    const notes = await Notes.find({ User: userid });
+    res.send({ notes });
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+//| Login Required | Update and existing note | id required of Note you want to update
+//CRUD - Update
+route.put("/UpdateNotes/:id", fetchuser, async (req, res) => {
+  try {
+    const notefound = await Notes.findById(req.params.id)
+    if (notefound.User.toString()!==req.user.id) {  //if notes id and Notes user not match not allowed to update notes
+      return res.status(404).send("Not Allowed")
+    }
+    console.log("In Try");
+    const note_id = req.params.id;
+    console.log(note_id);
+    const updated_notes = await Notes.findByIdAndUpdate(note_id, {
+      Title: req.body.Title,
+      Description: req.body.Description,
+      Tag: req.body.Tag,
+    }, {new: true});
+    res.send(updated_notes);
   } catch (error) {
     res.status(500).send(error.message);
   }

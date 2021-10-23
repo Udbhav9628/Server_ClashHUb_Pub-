@@ -52,6 +52,25 @@ route.get("/FetchAllNotes", fetchuser, async (req, res) => {
   }
 });
 
+//| Login Required | fetch specific id note | id required of Note you want to update
+//CRUD - Read specific id note
+route.get("/UpdateNotes/:id", fetchuser, async (req, res) => {
+  try {
+    const note = await Notes.findById(req.params.id);
+    if (!note) {
+      return res.status(404).send("Not Found");
+    }
+    if (note.User.toString() !== req.user.id) {
+      //if notes id and Notes user not match not allowed to update notes
+      return res.status(404).send("Not Allowed");
+    }
+    const specificnotes = await Notes.findById(req.params.id);
+    res.send(specificnotes);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
 //| Login Required | Update  existing note | id required of Note you want to update
 //CRUD - Update
 route.put("/UpdateNotes/:id", fetchuser, async (req, res) => {

@@ -3,7 +3,7 @@ const morgan = require('morgan');
 const path = require('path');
 const dotenv = require('dotenv');
 const app = express();
-const connectDB = require('./server/database/connection');
+const connectDB = require('./server/database/database_connection');
 const cors = require('cors');
 
 app.use(cors());
@@ -21,8 +21,8 @@ app.use(express.urlencoded({
   extended: true
 }));
 
-app.use('/',require('./server/routes/User'));
-app.use('/',require('./server/routes/Notes'));
+app.use('/',require('./server/routes/tournament'));
+app.use('/',require('./server/routes/userdata'));
 
 app.listen(port,()=>{
   console.log("The server is running at poort 8000");

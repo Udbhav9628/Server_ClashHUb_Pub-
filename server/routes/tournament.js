@@ -4,19 +4,14 @@ const tournamentschema = require("../model/tournament");
 const Get_User_id = require("../Middleware/getuserid");
 const { body, validationResult } = require("express-validator");
 
-//Home Route
-route.get("/", (req, res) => {
-  res.send("Home Route");
-});
-
 //Create
 route.post(
   "/createtournament",
   Get_User_id,
   [
-    body("Title", "Title must be atleaset 3 char").isLength({ min: 3 }),
-    body("Description", "Description must be atleaset 3 char").isLength({
-      min: 5,
+    body("Game_Name", "Game_Name must be atleaset 3 char").isLength({ min: 3 }),
+    body("Prize_Pool", "Description must be atleaset 3 char").isLength({
+      min: 3,
     }),
   ],
   async (req, res) => {
@@ -26,14 +21,13 @@ route.post(
     }
     try {
       const new_tournament = new tournamentschema({
-        User: req.user.id,
-        Title: req.body.Title,
-        Description: req.body.Description,
+        User: req.user.id,//Whats we get from Get_User_id /Saved user payload
+        Game_Name: req.body.Game_Name,
         Total_Players: req.body.Total_Players,
-        Prizes: req.body.Prizes,
+        Prize_Pool: req.body.Prize_Pool,
       });
       new_tournament.save().then((data) => {
-        res.send(data);
+        res.json({data});
       });
     } catch (error) {
       res.status(500).send(error.message);
@@ -57,14 +51,13 @@ route.put("/Updatetournament/:id", Get_User_id, async (req, res) => {
     const tournament_found = await tournamentschema.findById(req.params.id);
     if (!tournament_found) {
       return res.status(404).send("Not Found");
-    }else if (tournament_found.User.toString()!== req.user.id) { //objectid is uhi not present just unhi that's why tostring is coverting it into string
+    }else if (tournament_found.User.toString()!== req.user.id) { //objectid is uhi not present just unhi that's why tostring is coverting it into string//why using to string
       return res.status(404).send("Not Allowed");
     }else{
       const updated_data = await tournamentschema.findByIdAndUpdate(req.params.id,{
-        Title: req.body.Title,
-        Description: req.body.Description,
+        Game_Name: req.body.Game_Name,
         Total_Players: req.body.Total_Players,
-        Prizes: req.body.Prizes,
+        Prize_Pool: req.body.Prize_Pool,
       },
       { new: true }
       );
@@ -83,7 +76,7 @@ route.delete("/Deletetournament/:id", Get_User_id, async (req, res) => {
     }else if (tournament_found.User.toString()!== req.user.id) { //objectid is uhi not present just unhi that's why tostring is coverting it into string
       return res.status(404).send("Not Allowed");
     }else{
-      const updated_data = await tournamentschema.findByIdAndDelete(req.params.id);
+      await tournamentschema.findByIdAndDelete(req.params.id);
       res.send({Message:"Note Deleted Sucessfully"});
     }
   } catch (error) {

@@ -5,11 +5,7 @@ const tournament_schema = new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,//it will take only object id from req.body which will come from jwt token
         ref:'userdata'
     },
-    Title:{
-        type:String,
-        required:true
-    },
-    Description:{
+    Game_Name:{
         type:String,
         required:true
     },
@@ -17,7 +13,7 @@ const tournament_schema = new mongoose.Schema({
         type: Number,
         required:true
     },
-    Prizes:{
+    Prize_Pool:{
         type: String,
         required:true
     },

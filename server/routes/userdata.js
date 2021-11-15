@@ -8,6 +8,7 @@ var jwt = require("jsonwebtoken");
 route.post(
   "/Register",
   [
+    body("Name").isLength({ min: 3 }),
     body("Email").isEmail(),
     body("Password").isLength({ min: 5 }),
   ],
@@ -19,14 +20,15 @@ route.post(
     try {
       let Newuser = await userschema.findOne({ Email: req.body.Email });
       if (Newuser) {
-        res.status(500).send({ Message: "user already Existed" });
+        res.status(500).send("user already Existed" );
         return;
       }
-      const new_tournament = new userschema({
+      const new_user = new userschema({
+        Name:req.body.Name,
         Email: req.body.Email,
         Password: req.body.Password,
       });
-      new_tournament.save().then((data) => {
+      new_user.save().then((data) => {
         res.send(data);
       });
     } catch (error) {
@@ -54,14 +56,14 @@ route.post(
           .json({ Message: "Login With Correct Credientals Please" });
       }else if(user.Password===req.body.Password){
         const PayLoad = { //this is the data will recevive when verify jwt token provided in header - user id
-          id: user.id,
+          id: user.id,//Logged User id is saved in authtoken
         };
         const Auth_Token = jwt.sign(PayLoad, process.env.JWTSCREAT);
-        res.json({ Auth_Token });
+        res.json({  Auth_Token });
       }else{
         return res
           .status(500)
-          .json({sucess, Message: "Login With Correct Credientals Please" });
+          .json({Message: "Login With Correct Credientals Please" });
       }
     } catch (error) {
       res.status(500).send(error.message);

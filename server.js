@@ -25,5 +25,5 @@ app.use('/',require('./server/routes/tournament'));
 app.use('/',require('./server/routes/userdata'));
 
 app.listen(port,()=>{
-  console.log("The server is running at poort 8000");
+  console.log("The server is running at port 8000");
 });

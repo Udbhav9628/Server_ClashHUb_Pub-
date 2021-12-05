@@ -7,11 +7,12 @@ const tournament_schema = new mongoose.Schema({
     },
     Game_Name:{
         type:String,
-        required:true
+        required:[true, "Please Enter Game Name"]
     },
     Total_Players:{
         type: Number,
-        required:true
+        required:[true, "Please Enter Players"],
+        maxLength:[3,"Too much players"]
     },
     Prize_Pool:{
         type: String,

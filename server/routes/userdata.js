@@ -20,11 +20,11 @@ route.post(
     try {
       let Newuser = await userschema.findOne({ Email: req.body.Email });
       if (Newuser) {
-        res.status(500).send("user already Existed" );
+        res.status(500).send("user already Existed");
         return;
       }
       const new_user = new userschema({
-        Name:req.body.Name,
+        Name: req.body.Name,
         Email: req.body.Email,
         Password: req.body.Password,
       });
@@ -39,10 +39,7 @@ route.post(
 
 route.post(
   "/Login",
-  [
-    body("Email").isEmail(),
-    body("Password").isLength({ min: 5 }),
-  ],
+  [body("Email").isEmail(), body("Password").isLength({ min: 5 })],
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -54,16 +51,19 @@ route.post(
         return res
           .status(500)
           .json({ Message: "Login With Correct Credientals Please" });
-      }else if(user.Password===req.body.Password){
-        const PayLoad = { //this is the data will recevive when verify jwt token provided in header - user id
-          id: user.id,//Logged User id is saved in authtoken
+      } else if (user.Password === req.body.Password) {
+        const PayLoad = {
+          //this is the data will recevive when verify jwt token provided in header - user id
+          //TO Do --Save in Hashed with salt and then reverse engineer it when need to use
+          id: user.id, //Logged User id is saved in authtoken
+          Name: user.Name,//Logged User Name is saved in authtoken   TO --Save in Hashed with salt 
         };
         const Auth_Token = jwt.sign(PayLoad, process.env.JWTSCREAT);
-        res.json({  Auth_Token });
-      }else{
+        res.json({ Auth_Token });
+      } else {
         return res
           .status(500)
-          .json({Message: "Login With Correct Credientals Please" });
+          .json({ Message: "Login With Correct Credientals Please" });
       }
     } catch (error) {
       res.status(500).send(error.message);

@@ -1,28 +1,48 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const tournament_schema = new mongoose.Schema({
-    User:{//Associating Notes with user just like foreign key in mysql
-        type:mongoose.Schema.Types.ObjectId,//it will take only object id from req.body which will come from jwt token
-        ref:'userdata'
-    },
-    Game_Name:{
+  User: {
+    //Associating Notes with user just like foreign key in mysql
+    type: mongoose.Schema.Types.ObjectId, //it will take only object id from req.body which will come from jwt token
+    ref: "userdata",
+    required:true,
+  },
+  Game_Name: {
+    type: String,
+    required: [true, "Please Enter Game Name"],
+    trim: true,
+  },
+  Total_Players: {
+    type: Number,
+    required: [true, "Please Enter Players"],
+    maxLength: [3, "Too much players"],
+  },
+  Prize_Pool: {
+    type: String,
+    required: true,
+  },
+  Joined_Player: {
+    type: Number,
+    default: 0,
+  },
+  Joined_User: [
+    {
+      UserId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required:true,
+        ref: "userdata",
+      },
+      UserName: {
         type:String,
-        required:[true, "Please Enter Game Name"]
+        required:true,
+      },
     },
-    Total_Players:{
-        type: Number,
-        required:[true, "Please Enter Players"],
-        maxLength:[3,"Too much players"]
-    },
-    Prize_Pool:{
-        type: String,
-        required:true
-    },
-    Date:{
-        type:Date,
-        default: Date.now()
-    }
+  ],
+  Date: {
+    type: Date,
+    default: Date.now(),
+  },
 });
 
-const tournamentschema = mongoose.model('tournament',tournament_schema);
+const tournamentschema = mongoose.model("tournament", tournament_schema);
 module.exports = tournamentschema;

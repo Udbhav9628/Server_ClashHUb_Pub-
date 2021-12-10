@@ -56,10 +56,10 @@ route.post(
           //this is the data will recevive when verify jwt token provided in header - user id
           //TO Do --Save in Hashed with salt and then reverse engineer it when need to use
           id: user.id, //Logged User id is saved in authtoken
-          Name: user.Name,//Logged User Name is saved in authtoken   TO --Save in Hashed with salt 
+          Name: user.Name, //Logged User Name is saved in authtoken   TO --Save in Hashed with salt
         };
         const Auth_Token = jwt.sign(PayLoad, process.env.JWTSCREAT);
-        res.json({ Auth_Token });
+        res.json({ User:user.Name, Auth_Token });
       } else {
         return res
           .status(500)

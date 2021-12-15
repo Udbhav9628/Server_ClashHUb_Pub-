@@ -3,6 +3,7 @@ const route = express.Router();
 const userschema = require("../model/userdata");
 const { body, validationResult } = require("express-validator");
 var jwt = require("jsonwebtoken");
+const Get_User_id = require("../Middleware/getuserid");
 
 //Create User
 route.post(
@@ -48,9 +49,7 @@ route.post(
     try {
       let user = await userschema.findOne({ Email: req.body.Email });
       if (!user) {
-        return res
-          .status(500)
-          .json({ Message: "Login With Correct Credientals Please" });
+        return res.status(200).send("Login With Correct Credientals Please");
       } else if (user.Password === req.body.Password) {
         const PayLoad = {
           //this is the data will recevive when verify jwt token provided in header - user id
@@ -59,7 +58,12 @@ route.post(
           Name: user.Name, //Logged User Name is saved in authtoken   TO --Save in Hashed with salt
         };
         const Auth_Token = jwt.sign(PayLoad, process.env.JWTSCREAT);
-        res.json({ User:user.Name, Auth_Token });
+        res.json({
+          User: user.Name,
+          Joined_Date: user.Date,
+          Wallet: user.Wallet_Coins,
+          Auth_Token,
+        });
       } else {
         return res
           .status(500)
@@ -70,5 +74,19 @@ route.post(
     }
   }
 );
+
+//Geting Logged in User Details
+route.get("/getUserDetails", Get_User_id, async (req, res) => {
+  try {
+    let user = await userschema.findById(req.user.id);
+    if (!user) {
+      return res.status(500).send("User Not Exist May be");
+    } else {
+      return res.status(200).send(user);
+    }
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
 
 module.exports = route;

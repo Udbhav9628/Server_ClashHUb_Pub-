@@ -1,6 +1,7 @@
 const express = require("express");
 const route = express.Router();
 const tournamentschema = require("../model/tournament");
+const UserModal = require("../model/userdata");
 const Get_User_id = require("../Middleware/getuserid");
 const { body, validationResult } = require("express-validator");
 // const Errror_Handler = require("../utils/errorhandler");
@@ -129,6 +130,14 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
         await match.save();
         res.status(200).send("Match Joined Successfully");
       }
+      const User = await UserModal.findByIdAndUpdate(
+        req.user.id,
+        {
+          Wallet_Coins: req.body.New_Ballance,
+        },
+        { new: true }
+      );
+      res.send("Wallet Ballance Updated Sucessfully");
     }
   } catch (error) {
     res.status(500).send(error.message);

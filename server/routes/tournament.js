@@ -27,6 +27,7 @@ route.post(
         Game_Name: req.body.Game_Name,
         Total_Players: req.body.Total_Players,
         Prize_Pool: req.body.Prize_Pool,
+        Date_Time: req.body.Date_Time,
       });
       new_tournament.save().then((data) => {
         res.json({ data });
@@ -128,16 +129,15 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
         match.Joined_User.push(User_Details);
         match.Joined_Player = match.Joined_User.length;
         await match.save();
-        res.status(200).send("Match Joined Successfully");
+        const User = await UserModal.findByIdAndUpdate(
+          req.user.id,
+          {
+            Wallet_Coins: req.body.New_Ballance,
+          },
+          { new: true }
+        );
+        res.status(200).send("Match Joined Successfully , Wallet Updated");
       }
-      const User = await UserModal.findByIdAndUpdate(
-        req.user.id,
-        {
-          Wallet_Coins: req.body.New_Ballance,
-        },
-        { new: true }
-      );
-      res.send("Wallet Ballance Updated Sucessfully");
     }
   } catch (error) {
     res.status(500).send(error.message);

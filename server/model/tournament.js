@@ -5,7 +5,7 @@ const tournament_schema = new mongoose.Schema({
     //Associating Notes with user just like foreign key in mysql
     type: mongoose.Schema.Types.ObjectId, //it will take only object id from req.body which will come from jwt token
     ref: "userdata",
-    required:true,
+    required: true,
   },
   Game_Name: {
     type: String,
@@ -29,18 +29,18 @@ const tournament_schema = new mongoose.Schema({
     {
       UserId: {
         type: mongoose.Schema.Types.ObjectId,
-        required:true,
+        required: true,
         ref: "userdata",
       },
       UserName: {
-        type:String,
-        required:true,
+        type: String,
+        required: true,
       },
     },
   ],
-  Date: {
+  Date_Time: {
     type: Date,
-    default: Date.now(),
+    required: [true, "Please Enter Date & Time"],
   },
 });
 

@@ -21,7 +21,7 @@ route.post(
     try {
       let Newuser = await userschema.findOne({ Email: req.body.Email });
       if (Newuser) {
-        res.status(500).send("user already Existed");
+        res.status(200).send("User Existed You Can Login Now");
         return;
       }
       const new_user = new userschema({
@@ -38,6 +38,7 @@ route.post(
   }
 );
 
+//Normal Login
 route.post(
   "/Login",
   [body("Email").isEmail(), body("Password").isLength({ min: 5 })],
@@ -49,7 +50,9 @@ route.post(
     try {
       let user = await userschema.findOne({ Email: req.body.Email });
       if (!user) {
-        return res.status(200).send("Login With Correct Credientals Please");
+        return res
+          .status(500)
+          .send("Look like you don't have account, Create Your account first");
       } else if (user.Password === req.body.Password) {
         const PayLoad = {
           //this is the data will recevive when verify jwt token provided in header - user id
@@ -57,6 +60,7 @@ route.post(
           id: user.id, //Logged User id is saved in authtoken
           Name: user.Name, //Logged User Name is saved in authtoken   TO --Save in Hashed with salt
         };
+        console.log(req.body);
         const Auth_Token = jwt.sign(PayLoad, process.env.JWTSCREAT);
         res.json({
           User: user.Name,
@@ -74,6 +78,39 @@ route.post(
     }
   }
 );
+
+//Login with Google Route
+//Need to check for security Purpose
+route.post("/Loginwithgoogle", [body("Email").isEmail()], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+  try {
+    let user = await userschema.findOne({ Email: req.body.Email });
+    if (!user) {
+      return res
+        .status(500)
+        .send("Look like you don't have account, Create Your account first");
+    } else {
+      const PayLoad = {
+        //this is the data will recevive when verify jwt token provided in header - user id
+        //TO Do --Save in Hashed with salt and then reverse engineer it when need to use
+        id: user.id, //Logged User id is saved in authtoken
+        Name: user.Name, //Logged User Name is saved in authtoken   TO --Save in Hashed with salt
+      };
+      const Auth_Token = jwt.sign(PayLoad, process.env.JWTSCREAT);
+      res.json({
+        User: user.Name,
+        Joined_Date: user.Date,
+        Wallet: user.Wallet_Coins,
+        Auth_Token,
+      });
+    }
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
 
 //Geting Logged in User Details
 route.get("/getUserDetails", Get_User_id, async (req, res) => {

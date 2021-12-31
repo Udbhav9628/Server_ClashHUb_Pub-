@@ -129,8 +129,8 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
         match.Joined_User.push(User_Details);
         match.Joined_Player = match.Joined_User.length;
         await match.save();
-        const User = await UserModal.findByIdAndUpdate(
-          req.user.id,
+        await UserModal.findByIdAndUpdate(
+          req.user.id, ////comming from jwt token
           {
             Wallet_Coins: req.body.New_Ballance,
           },
@@ -139,6 +139,22 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
         res.status(200).send("Match Joined Successfully , Wallet Updated");
       }
     }
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+//Updating Balance
+route.put("/AddingCoins", Get_User_id, async (req, res) => {
+  try {
+    await UserModal.findByIdAndUpdate(
+      req.user.id, //comming from jwt token
+      {
+        Wallet_Coins: req.body.New_Ballance,
+      },
+      { new: true }
+    );
+    res.status(200).send("Wallet Updated");
   } catch (error) {
     res.status(500).send(error.message);
   }

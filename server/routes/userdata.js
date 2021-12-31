@@ -1,9 +1,13 @@
 const express = require("express");
+const path = require("path");
+const dotenv = require("dotenv");
 const route = express.Router();
 const userschema = require("../model/userdata");
 const { body, validationResult } = require("express-validator");
 var jwt = require("jsonwebtoken");
 const Get_User_id = require("../Middleware/getuserid");
+dotenv.config({ path: path.join(__dirname, "config.env") });
+const stripe = require("stripe")(process.env.STRIPE_SECREAT_KEY);
 
 //Create User
 route.post(
@@ -60,7 +64,6 @@ route.post(
           id: user.id, //Logged User id is saved in authtoken
           Name: user.Name, //Logged User Name is saved in authtoken   TO --Save in Hashed with salt
         };
-        console.log(req.body);
         const Auth_Token = jwt.sign(PayLoad, process.env.JWTSCREAT);
         res.json({
           User: user.Name,
@@ -125,5 +128,52 @@ route.get("/getUserDetails", Get_User_id, async (req, res) => {
     res.status(500).send(error.message);
   }
 });
+
+// Stripe Payment Route
+route.post("/Payment", async (req, res) => {
+  try {
+    const My_Payment = await stripe.paymentIntents.create({
+      amount: req.body.amount,
+      currency: "inr",
+      metadata: {
+        company: "Tournament App",
+      },
+    });
+    res.status(200).json({
+      sucess: true,
+      client_secret: My_Payment.client_secret,
+    });
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+// route.post("/Payment", (req, res) => {
+//   stripe.charges.create(
+//     {
+//       source: req.body.tokenId,
+//       amount: req.body.amount,
+//       currency: "usd",
+//     },
+//     (stripeErr, stripeRes) => {
+//       if (stripeErr) {
+//         res.status(500).json(stripeErr);
+//       } else {
+//         res.status(200).json(stripeRes);
+//       }
+//     }
+//   );
+// });
+
+//Stripe api Key Sending route               NEED TO USE
+// route.get("/StripeApiKey", (req, res) => {
+//   try {
+//     res.status(200).json({
+//       Stripe_api_key : process.env.STRIPE_API_KEY
+//     })
+//   } catch (error) {
+//     res.status(500).send(error.message);
+//   }
+// });
 
 module.exports = route;

@@ -129,51 +129,18 @@ route.get("/getUserDetails", Get_User_id, async (req, res) => {
   }
 });
 
-// Stripe Payment Route
-route.post("/Payment", async (req, res) => {
+//Geting Specific User Details by id
+route.get("/getSpecificUserDetails/:id", async (req, res) => {
   try {
-    const My_Payment = await stripe.paymentIntents.create({
-      amount: req.body.amount,
-      currency: "inr",
-      metadata: {
-        company: "Tournament App",
-      },
-    });
-    res.status(200).json({
-      sucess: true,
-      client_secret: My_Payment.client_secret,
-    });
+    let user = await userschema.findById(req.params.id);
+    if (!user) {
+      return res.status(500).send("User Not Exist May be");
+    } else {
+      return res.status(200).json({Name:user.Name, Joined : user.Date});
+    }
   } catch (error) {
     res.status(500).send(error.message);
   }
 });
-
-// route.post("/Payment", (req, res) => {
-//   stripe.charges.create(
-//     {
-//       source: req.body.tokenId,
-//       amount: req.body.amount,
-//       currency: "usd",
-//     },
-//     (stripeErr, stripeRes) => {
-//       if (stripeErr) {
-//         res.status(500).json(stripeErr);
-//       } else {
-//         res.status(200).json(stripeRes);
-//       }
-//     }
-//   );
-// });
-
-//Stripe api Key Sending route               NEED TO USE
-// route.get("/StripeApiKey", (req, res) => {
-//   try {
-//     res.status(200).json({
-//       Stripe_api_key : process.env.STRIPE_API_KEY
-//     })
-//   } catch (error) {
-//     res.status(500).send(error.message);
-//   }
-// });
 
 module.exports = route;

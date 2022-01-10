@@ -69,6 +69,7 @@ route.post(
           User: user.Name,
           Joined_Date: user.Date,
           Wallet: user.Wallet_Coins,
+          Role:user.Role,
           Auth_Token,
         });
       } else {
@@ -107,6 +108,7 @@ route.post("/Loginwithgoogle", [body("Email").isEmail()], async (req, res) => {
         User: user.Name,
         Joined_Date: user.Date,
         Wallet: user.Wallet_Coins,
+        Role:user.Role,
         Auth_Token,
       });
     }

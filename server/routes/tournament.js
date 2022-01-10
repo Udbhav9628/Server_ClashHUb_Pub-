@@ -3,13 +3,16 @@ const route = express.Router();
 const tournamentschema = require("../model/tournament");
 const UserModal = require("../model/userdata");
 const Get_User_id = require("../Middleware/getuserid");
+const Checkisadmin = require("../Middleware/Isadmin");
 const { body, validationResult } = require("express-validator");
+
 // const Errror_Handler = require("../utils/errorhandler");
 
 //Create -- Admin Route
 route.post(
   "/createtournament",
   Get_User_id,
+  Checkisadmin("admin"),
   [
     body("Game_Name", "Game_Name must be atleaset 3 char").isLength({ min: 3 }),
     body("Prize_Pool", "Prize_Pool must be atleaset 3 char").isLength({
@@ -49,49 +52,59 @@ route.get("/fetchalltournament", async (req, res) => {
 });
 
 //Update -- Admin Route
-route.put("/Updatetournament/:id", Get_User_id, async (req, res) => {
-  try {
-    const tournament_found = await tournamentschema.findById(req.params.id);
-    if (!tournament_found) {
-      // return next(new Errror_Handler("Something Went Wrong", 404));
-      return res.status(404).send("Not Found");
-    } else if (tournament_found.User.toString() !== req.user.id) {
-      //objectid is uhi not present just unhi that's why tostring is coverting it into string//why using to string
-      return res.status(404).send("Not Allowed");
-    } else {
-      await tournamentschema.findByIdAndUpdate(
-        req.params.id,
-        {
-          Game_Name: req.body.Game_Name,
-          Total_Players: req.body.Total_Players,
-          Prize_Pool: req.body.Prize_Pool,
-        },
-        { new: true }
-      );
-      res.send("Updated Sucessfully");
+route.put(
+  "/Updatetournament/:id",
+  Get_User_id,
+  Checkisadmin("admin"),
+  async (req, res) => {
+    try {
+      const tournament_found = await tournamentschema.findById(req.params.id);
+      if (!tournament_found) {
+        // return next(new Errror_Handler("Something Went Wrong", 404));
+        return res.status(404).send("Not Found");
+      } else if (tournament_found.User.toString() !== req.user.id) {
+        //objectid is uhi not present just unhi that's why tostring is coverting it into string//why using to string
+        return res.status(404).send("Not Allowed");
+      } else {
+        await tournamentschema.findByIdAndUpdate(
+          req.params.id,
+          {
+            Game_Name: req.body.Game_Name,
+            Total_Players: req.body.Total_Players,
+            Prize_Pool: req.body.Prize_Pool,
+          },
+          { new: true }
+        );
+        res.send("Updated Sucessfully");
+      }
+    } catch (error) {
+      res.status(500).send(error.message);
     }
-  } catch (error) {
-    res.status(500).send(error.message);
   }
-});
+);
 
 // Delete-- Admin Route
-route.delete("/Deletetournament/:id", Get_User_id, async (req, res) => {
-  try {
-    const tournament_found = await tournamentschema.findById(req.params.id);
-    if (!tournament_found) {
-      return res.status(404).send("Not allowed jjjjj");
-    } else if (tournament_found.User.toString() !== req.user.id) {
-      //objectid is uhi not present just unhi that's why tostring is coverting it into string
-      return res.status(200).send("Not Allowed");
-    } else {
-      await tournamentschema.findByIdAndDelete(req.params.id);
-      res.send("Deleted Sucessfully");
+route.delete(
+  "/Deletetournament/:id",
+  Get_User_id,
+  Checkisadmin("admin"),
+  async (req, res) => {
+    try {
+      const tournament_found = await tournamentschema.findById(req.params.id);
+      if (!tournament_found) {
+        return res.status(404).send("Not allowed jjjjj");
+      } else if (tournament_found.User.toString() !== req.user.id) {
+        //objectid is uhi not present just unhi that's why tostring is coverting it into string
+        return res.status(200).send("Not Allowed");
+      } else {
+        await tournamentschema.findByIdAndDelete(req.params.id);
+        res.send("Deleted Sucessfully");
+      }
+    } catch (error) {
+      res.status(500).send(error.message);
     }
-  } catch (error) {
-    res.status(500).send(error.message);
   }
-});
+);
 
 // Get Tournament Details
 route.get("/gettournamentdetails/:id", Get_User_id, async (req, res) => {

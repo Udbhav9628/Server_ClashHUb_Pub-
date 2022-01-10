@@ -12,6 +12,7 @@ const userdata_schema = new mongoose.Schema({
   Password: {
     type: String,
     required: true,
+    // select:false -- Need to do later refer project video
   },
   Wallet_Coins: {
     type: Number,
@@ -21,6 +22,10 @@ const userdata_schema = new mongoose.Schema({
     type: Date,
     default: Date.now(),
   },
+  Role:{
+    type:String,
+    default:'user'
+  }
 });
 
 const userschema = mongoose.model("userdata", userdata_schema);

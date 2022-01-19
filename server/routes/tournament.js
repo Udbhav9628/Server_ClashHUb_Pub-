@@ -72,8 +72,9 @@ route.put(
             Game_Name: req.body.Game_Name,
             Total_Players: req.body.Total_Players,
             Prize_Pool: req.body.Prize_Pool,
+            Joined_User: req.body.Joined_User,
           },
-          { new: true }
+          { new: true, runValidators: true }
         );
         res.send("Updated Sucessfully");
       }

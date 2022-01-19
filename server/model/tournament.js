@@ -36,6 +36,12 @@ const tournament_schema = new mongoose.Schema({
         type: String,
         required: true,
       },
+      Kills: {
+        type: Number,
+        min: [0, "Kills Must Be at Least 20"],
+        max: [20, "Kills Can Be at Max 20"],
+        default: null,
+      },
     },
   ],
   Date_Time: {

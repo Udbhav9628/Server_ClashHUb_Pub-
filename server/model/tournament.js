@@ -1,10 +1,18 @@
 const mongoose = require("mongoose");
 
 const tournament_schema = new mongoose.Schema({
-  User: {
+  GuildId: {
     //Associating Notes with user just like foreign key in mysql
     type: mongoose.Schema.Types.ObjectId, //it will take only object id from req.body which will come from jwt token
-    ref: "userdata",
+    ref: "Guild",
+    required: true,
+  },
+  GuildName: {
+    type: String,
+    required: [true, "Please Provide Game Name"],
+  },
+  GuildFollowers: {
+    type: Number,
     required: true,
   },
   Game_Name: {
@@ -18,7 +26,7 @@ const tournament_schema = new mongoose.Schema({
     maxLength: [3, "Too much players"],
   },
   Prize_Pool: {
-    type: String,
+    type: Number,
     required: true,
   },
   Joined_Player: {
@@ -46,7 +54,8 @@ const tournament_schema = new mongoose.Schema({
   ],
   Date_Time: {
     type: Date,
-    required: [true, "Please Enter Date & Time"],
+    // required: [true, "Please Enter Date & Time"],
+    default: Date.now(), //To Remove
   },
 });
 

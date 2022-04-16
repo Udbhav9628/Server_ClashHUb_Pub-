@@ -17,15 +17,17 @@ const userdata_schema = new mongoose.Schema({
   Wallet_Coins: {
     type: Number,
     default: 0,
+    min: [0, "Coins Can be atleast 0"],
+    max: [1000, "You Can't add More then 1000 coins"],
   },
   Date: {
     type: Date,
     default: Date.now(),
   },
-  Role:{
-    type:String,
-    default:'user'
-  }
+  Role: {
+    type: String,
+    default: "user",
+  },
 });
 
 const userschema = mongoose.model("userdata", userdata_schema);

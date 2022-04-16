@@ -5,8 +5,113 @@ const UserModal = require("../model/userdata");
 const Get_User_id = require("../Middleware/getuserid");
 const Checkisadmin = require("../Middleware/Isadmin");
 const { body, validationResult } = require("express-validator");
+const Guild_Schema = require("../model/Guild");
+const Api_Feature = require("../utils/ApiFeature");
 
 // const Errror_Handler = require("../utils/errorhandler");
+
+//fetch all tournaments
+// route.get("/fetchalltournament", async (req, res) => {
+//   try {
+//     const Data = await new Api_Feature(tournamentschema, req.query).Filter();
+//     res.send({ Data });
+//   } catch (error) {
+//     res.status(500).send(error.message);
+//   }
+// });
+
+route.get("/fetchalltournament", Get_User_id, async (req, res) => {
+  try {
+    const Data = await tournamentschema.find({
+      "Joined_User.UserId": { $ne: req.user.id },
+    });
+    res.send({ Data });
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+//Get Logged In User Joined Matches
+route.get("/GetJoinedMatches", Get_User_id, async (req, res) => {
+  try {
+    const Data = await tournamentschema.find({
+      "Joined_User.UserId": req.user.id,
+    });
+    res.send(Data);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+//For App Only
+route.get("/getGuildtournaments/:id", Get_User_id, async (req, res) => {
+  try {
+    const Data = await tournamentschema.find({ GuildId: req.params.id });
+    res.send({ Data });
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+// Get Specific Tournament Details
+//For Web Only
+route.get("/gettournamentdetails/:id", Get_User_id, async (req, res) => {
+  try {
+    const Data = await tournamentschema.find({ User: req.user.id });
+    res.send({ Data });
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+//Join Match Route - put Request
+//Two await in single route check if is ok
+route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
+  try {
+    const tournament_found = await tournamentschema.findById(req.params.id);
+    if (!tournament_found) {
+      return res.status(404).send("Not Found");
+    }
+    // else if (tournament_found.User.toString() !== req.user.id) {
+    //   // need to modify
+    //   return res.status(404).send("You Have already Joined The Match");
+    // }
+    else {
+      const User_Details = {
+        UserId: req.user.id, //logged in user id
+        UserName: req.user.Name,
+      };
+      const match = await tournamentschema.findById(req.params.id);
+      const isJoined = match.Joined_User.find(
+        (user) => user.UserId.toString() === req.user.id.toString()
+      );
+      if (isJoined) {
+        res.status(200).send("You Have already Joined");
+      } else {
+        match.Joined_User.push(User_Details);
+        match.Joined_Player = match.Joined_User.length;
+        const User = await UserModal.findById(req.user.id);
+        if (User) {
+          let New_Amount = User.Wallet_Coins - req.body.Amount_to_be_paid;
+          await UserModal.findByIdAndUpdate(
+            req.user.id, ////comming from jwt token
+            {
+              Wallet_Coins: New_Amount,
+            },
+            { new: true }
+          );
+          await match.save();
+          //Join User will be saved after wallet ballance updated - but one problem what if wallet ballance updated but error occured while performing match.save() function
+          res.status(200).send("Wallet Updated , Match Joined Successfully");
+        } else {
+          res.status(500).send("User Not Found");
+        }
+      }
+    }
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
 
 //Create -- Admin Route
 route.post(
@@ -16,7 +121,7 @@ route.post(
   [
     body("Game_Name", "Game_Name must be atleaset 3 char").isLength({ min: 3 }),
     body("Prize_Pool", "Prize_Pool must be atleaset 3 char").isLength({
-      min: 3,
+      min: 1,
     }),
   ],
   async (req, res) => {
@@ -25,31 +130,31 @@ route.post(
       return res.status(400).json({ errors: errors.array() });
     }
     try {
-      const new_tournament = new tournamentschema({
-        User: req.user.id, //Whats we get from Get_User_id /Saved user payload
-        Game_Name: req.body.Game_Name,
-        Total_Players: req.body.Total_Players,
-        Prize_Pool: req.body.Prize_Pool,
-        Date_Time: req.body.Date_Time,
-      });
-      new_tournament.save().then((data) => {
-        res.json({ data });
-      });
+      let Guild = await Guild_Schema.findOne({ OwnerId: req.user.id });
+      if (!Guild) {
+        return res.status(200).send({
+          status: false,
+          Message: "Guild Does not Exist , Create First",
+        });
+      } else {
+        const new_tournament = new tournamentschema({
+          GuildId: Guild._id,
+          GuildName: Guild.GuildName,
+          GuildFollowers: Guild.Members.length,
+          Game_Name: req.body.Game_Name,
+          Total_Players: req.body.Total_Players,
+          Prize_Pool: req.body.Prize_Pool,
+          // Date_Time: req.body.Date_Time,
+        });
+        new_tournament.save().then((data) => {
+          res.json({ data });
+        });
+      }
     } catch (error) {
       res.status(500).send(error.message);
     }
   }
 );
-
-//Read
-route.get("/fetchalltournament", async (req, res) => {
-  try {
-    const Data = await tournamentschema.find();
-    res.send({ Data });
-  } catch (error) {
-    res.status(500).send(error.message);
-  }
-});
 
 //Update -- Admin Route
 route.put(
@@ -93,7 +198,7 @@ route.delete(
     try {
       const tournament_found = await tournamentschema.findById(req.params.id);
       if (!tournament_found) {
-        return res.status(404).send("Not allowed jjjjj");
+        return res.status(404).send("Not allowed");
       } else if (tournament_found.User.toString() !== req.user.id) {
         //objectid is uhi not present just unhi that's why tostring is coverting it into string
         return res.status(200).send("Not Allowed");
@@ -106,72 +211,5 @@ route.delete(
     }
   }
 );
-
-// Get Tournament Details
-route.get("/gettournamentdetails/:id", Get_User_id, async (req, res) => {
-  try {
-    const Data = await tournamentschema.find({ User: req.user.id });
-    res.send({ Data });
-  } catch (error) {
-    res.status(500).send(error.message);
-  }
-});
-
-//Join Match Route - put Request
-route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
-  try {
-    const tournament_found = await tournamentschema.findById(req.params.id);
-    if (!tournament_found) {
-      return res.status(404).send("Not Found");
-    }
-    // else if (tournament_found.User.toString() !== req.user.id) {
-    //   // need to modify
-    //   return res.status(404).send("You Have already Joined The Match");
-    // }
-    else {
-      const User_Details = {
-        UserId: req.user.id, //logged in user id
-        UserName: req.user.Name,
-      };
-      const match = await tournamentschema.findById(req.params.id);
-      const isJoined = match.Joined_User.find(
-        (user) => user.UserId.toString() === req.user.id.toString()
-      );
-      if (isJoined) {
-        res.status(200).send("You Have already Joined");
-      } else {
-        match.Joined_User.push(User_Details);
-        match.Joined_Player = match.Joined_User.length;
-        await match.save();
-        await UserModal.findByIdAndUpdate(
-          req.user.id, ////comming from jwt token
-          {
-            Wallet_Coins: req.body.New_Ballance,
-          },
-          { new: true }
-        );
-        res.status(200).send("Match Joined Successfully , Wallet Updated");
-      }
-    }
-  } catch (error) {
-    res.status(500).send(error.message);
-  }
-});
-
-//Updating Balance
-route.put("/AddingCoins", Get_User_id, async (req, res) => {
-  try {
-    await UserModal.findByIdAndUpdate(
-      req.user.id, //comming from jwt token
-      {
-        Wallet_Coins: req.body.New_Ballance,
-      },
-      { new: true }
-    );
-    res.status(200).send("Wallet Updated");
-  } catch (error) {
-    res.status(500).send(error.message);
-  }
-});
 
 module.exports = route;

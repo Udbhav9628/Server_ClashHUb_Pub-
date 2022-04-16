@@ -66,10 +66,11 @@ route.post(
         };
         const Auth_Token = jwt.sign(PayLoad, process.env.JWTSCREAT);
         res.json({
+          id: user._id,
           User: user.Name,
           Joined_Date: user.Date,
           Wallet: user.Wallet_Coins,
-          Role:user.Role,
+          Role: user.Role,
           Auth_Token,
         });
       } else {
@@ -108,7 +109,7 @@ route.post("/Loginwithgoogle", [body("Email").isEmail()], async (req, res) => {
         User: user.Name,
         Joined_Date: user.Date,
         Wallet: user.Wallet_Coins,
-        Role:user.Role,
+        Role: user.Role,
         Auth_Token,
       });
     }
@@ -138,7 +139,7 @@ route.get("/getSpecificUserDetails/:id", async (req, res) => {
     if (!user) {
       return res.status(500).send("User Not Exist May be");
     } else {
-      return res.status(200).json({Name:user.Name, Joined : user.Date});
+      return res.status(200).json({ Name: user.Name, Joined: user.Date });
     }
   } catch (error) {
     res.status(500).send(error.message);

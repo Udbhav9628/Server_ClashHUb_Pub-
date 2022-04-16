@@ -28,8 +28,10 @@ app.use(
   })
 );
 
+app.use("/", require("./server/routes/Guildroute"));
 app.use("/", require("./server/routes/tournament"));
 app.use("/", require("./server/routes/userdata"));
+app.use("/", require("./server/routes/Payment"));
 
 const server = app.listen(port, () => {
   console.log("The server is running at port 8000");

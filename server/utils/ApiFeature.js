@@ -1,11 +1,11 @@
 class Api_Feature {
-  constructor(query, queryStr) {
+  constructor(query, queryStr, userid) {
     this.Query = query; //tournamentschema
-    this.QueryStr = queryStr; //Pubg or Free
+    this.QueryStr = queryStr; //Pubg or Freefire
+    this.User_id = userid; //Pubg or Free
   }
   async search() {
-    //Class Function
-    const Keyword = this.QueryStr.Keyword
+    const Keyword = this.QueryStr.Keyword //dont confuse keyword is nothing
       ? {
           Game_Name: {
             $regex: this.QueryStr.Keyword,
@@ -19,7 +19,17 @@ class Api_Feature {
   }
 
   async Filter() {
-    this.Product = await this.Query.find(this.QueryStr);
+    const query = this.QueryStr.Game_Name
+      ? {
+          "Joined_User.UserId": { $ne: this.User_id },
+          UserId: { $ne: this.User_id },
+          Game_Name: this.QueryStr.Game_Name,
+        }
+      : {
+          "Joined_User.UserId": { $ne: this.User_id },
+          UserId: { $ne: this.User_id },
+        };
+    this.Product = await this.Query.find({ ...query });
     return this.Product;
   }
 }

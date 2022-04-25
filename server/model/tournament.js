@@ -7,12 +7,9 @@ const tournament_schema = new mongoose.Schema({
     ref: "Guild",
     required: true,
   },
-  GuildName: {
-    type: String,
-    required: [true, "Please Provide Game Name"],
-  },
-  GuildFollowers: {
-    type: Number,
+  UserId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "userdata",
     required: true,
   },
   Game_Name: {
@@ -29,10 +26,10 @@ const tournament_schema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  Joined_Player: {
-    type: Number,
-    default: 0,
-  },
+  // Joined_Player: {
+  //   type: Number,
+  //   default: 0,
+  // },
   Joined_User: [
     {
       UserId: {

@@ -3,33 +3,36 @@ const route = express.Router();
 const tournamentschema = require("../model/tournament");
 const UserModal = require("../model/userdata");
 const Get_User_id = require("../Middleware/getuserid");
-const Checkisadmin = require("../Middleware/Isadmin");
 const { body, validationResult } = require("express-validator");
 const Guild_Schema = require("../model/Guild");
 const Api_Feature = require("../utils/ApiFeature");
 
 // const Errror_Handler = require("../utils/errorhandler");
 
-//fetch all tournaments
-// route.get("/fetchalltournament", async (req, res) => {
-//   try {
-//     const Data = await new Api_Feature(tournamentschema, req.query).Filter();
-//     res.send({ Data });
-//   } catch (error) {
-//     res.status(500).send(error.message);
-//   }
-// });
-
+// fetch all tournaments
 route.get("/fetchalltournament", Get_User_id, async (req, res) => {
   try {
-    const Data = await tournamentschema.find({
-      "Joined_User.UserId": { $ne: req.user.id },
-    });
+    const Data = await new Api_Feature(
+      tournamentschema,
+      req.query,
+      req.user.id
+    ).Filter();
     res.send({ Data });
   } catch (error) {
     res.status(500).send(error.message);
   }
 });
+
+// route.get("/fetchalltournament", Get_User_id, async (req, res) => {
+//   try {
+//     const Data = await tournamentschema.find({
+//       "Joined_User.UserId": { $ne: req.user.id },
+//     });
+//     res.send({ Data });
+//   } catch (error) {
+//     res.status(500).send(error.message);
+//   }
+// });
 
 //Get Logged In User Joined Matches
 route.get("/GetJoinedMatches", Get_User_id, async (req, res) => {
@@ -117,7 +120,6 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
 route.post(
   "/createtournament",
   Get_User_id,
-  Checkisadmin("admin"),
   [
     body("Game_Name", "Game_Name must be atleaset 3 char").isLength({ min: 3 }),
     body("Prize_Pool", "Prize_Pool must be atleaset 3 char").isLength({
@@ -130,7 +132,7 @@ route.post(
       return res.status(400).json({ errors: errors.array() });
     }
     try {
-      let Guild = await Guild_Schema.findOne({ OwnerId: req.user.id });
+      let Guild = await Guild_Schema.findById(req.body.Guild_Id);
       if (!Guild) {
         return res.status(200).send({
           status: false,
@@ -139,8 +141,7 @@ route.post(
       } else {
         const new_tournament = new tournamentschema({
           GuildId: Guild._id,
-          GuildName: Guild.GuildName,
-          GuildFollowers: Guild.Members.length,
+          UserId: req.user.id,
           Game_Name: req.body.Game_Name,
           Total_Players: req.body.Total_Players,
           Prize_Pool: req.body.Prize_Pool,
@@ -157,59 +158,49 @@ route.post(
 );
 
 //Update -- Admin Route
-route.put(
-  "/Updatetournament/:id",
-  Get_User_id,
-  Checkisadmin("admin"),
-  async (req, res) => {
-    try {
-      const tournament_found = await tournamentschema.findById(req.params.id);
-      if (!tournament_found) {
-        // return next(new Errror_Handler("Something Went Wrong", 404));
-        return res.status(404).send("Not Found");
-      } else if (tournament_found.User.toString() !== req.user.id) {
-        //objectid is uhi not present just unhi that's why tostring is coverting it into string//why using to string
-        return res.status(404).send("Not Allowed");
-      } else {
-        await tournamentschema.findByIdAndUpdate(
-          req.params.id,
-          {
-            Game_Name: req.body.Game_Name,
-            Total_Players: req.body.Total_Players,
-            Prize_Pool: req.body.Prize_Pool,
-            Joined_User: req.body.Joined_User,
-          },
-          { new: true, runValidators: true }
-        );
-        res.send("Updated Sucessfully");
-      }
-    } catch (error) {
-      res.status(500).send(error.message);
+route.put("/Updatetournament/:id", Get_User_id, async (req, res) => {
+  try {
+    const tournament_found = await tournamentschema.findById(req.params.id);
+    if (!tournament_found) {
+      // return next(new Errror_Handler("Something Went Wrong", 404));
+      return res.status(404).send("Not Found");
+    } else if (tournament_found.User.toString() !== req.user.id) {
+      //objectid is uhi not present just unhi that's why tostring is coverting it into string//why using to string
+      return res.status(404).send("Not Allowed");
+    } else {
+      await tournamentschema.findByIdAndUpdate(
+        req.params.id,
+        {
+          Game_Name: req.body.Game_Name,
+          Total_Players: req.body.Total_Players,
+          Prize_Pool: req.body.Prize_Pool,
+          Joined_User: req.body.Joined_User,
+        },
+        { new: true, runValidators: true }
+      );
+      res.send("Updated Sucessfully");
     }
+  } catch (error) {
+    res.status(500).send(error.message);
   }
-);
+});
 
 // Delete-- Admin Route
-route.delete(
-  "/Deletetournament/:id",
-  Get_User_id,
-  Checkisadmin("admin"),
-  async (req, res) => {
-    try {
-      const tournament_found = await tournamentschema.findById(req.params.id);
-      if (!tournament_found) {
-        return res.status(404).send("Not allowed");
-      } else if (tournament_found.User.toString() !== req.user.id) {
-        //objectid is uhi not present just unhi that's why tostring is coverting it into string
-        return res.status(200).send("Not Allowed");
-      } else {
-        await tournamentschema.findByIdAndDelete(req.params.id);
-        res.send("Deleted Sucessfully");
-      }
-    } catch (error) {
-      res.status(500).send(error.message);
+route.delete("/Deletetournament/:id", Get_User_id, async (req, res) => {
+  try {
+    const tournament_found = await tournamentschema.findById(req.params.id);
+    if (!tournament_found) {
+      return res.status(404).send("Not allowed");
+    } else if (tournament_found.User.toString() !== req.user.id) {
+      //objectid is uhi not present just unhi that's why tostring is coverting it into string
+      return res.status(200).send("Not Allowed");
+    } else {
+      await tournamentschema.findByIdAndDelete(req.params.id);
+      res.send("Deleted Sucessfully");
     }
+  } catch (error) {
+    res.status(500).send(error.message);
   }
-);
+});
 
 module.exports = route;

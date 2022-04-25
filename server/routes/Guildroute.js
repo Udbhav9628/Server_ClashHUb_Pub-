@@ -7,6 +7,16 @@ const Get_User_id = require("../Middleware/getuserid");
 const Checkisadmin = require("../Middleware/Isadmin");
 const { body, validationResult } = require("express-validator");
 
+//Read
+route.get("/fetchallGuild", Get_User_id, async (req, res) => {
+  try {
+    const Data = await Guild_Schema.find();
+    res.send(Data);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
 //Get User's Guild Details
 route.get("/getUserGuildDetails", Get_User_id, async (req, res) => {
   try {

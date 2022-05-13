@@ -12,10 +12,12 @@ const Api_Feature = require("../utils/ApiFeature");
 // fetch all tournaments
 route.get("/fetchalltournament", Get_User_id, async (req, res) => {
   try {
+    const ResultPerPage = 2;
     const Data = await new Api_Feature(
       tournamentschema,
       req.query,
-      req.user.id
+      req.user.id,
+      ResultPerPage
     ).Filter();
     res.send({ Data });
   } catch (error) {

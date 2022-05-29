@@ -51,8 +51,7 @@ const tournament_schema = new mongoose.Schema({
   ],
   Date_Time: {
     type: Date,
-    // required: [true, "Please Enter Date & Time"],
-    default: Date.now(), //To Remove
+    required: [true, "Please Enter Date & Time"],
   },
 });
 

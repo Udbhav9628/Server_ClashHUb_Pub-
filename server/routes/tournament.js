@@ -5,7 +5,7 @@ const UserModal = require("../model/userdata");
 const Get_User_id = require("../Middleware/getuserid");
 const { body, validationResult } = require("express-validator");
 const Guild_Schema = require("../model/Guild");
-const Api_Feature = require("../utils/ApiFeature");
+const { Api_Feature, MyMatches_Api_Feature } = require("../utils/ApiFeature");
 
 // const Errror_Handler = require("../utils/errorhandler");
 
@@ -25,23 +25,14 @@ route.get("/fetchalltournament", Get_User_id, async (req, res) => {
   }
 });
 
-// route.get("/fetchalltournament", Get_User_id, async (req, res) => {
-//   try {
-//     const Data = await tournamentschema.find({
-//       "Joined_User.UserId": { $ne: req.user.id },
-//     });
-//     res.send({ Data });
-//   } catch (error) {
-//     res.status(500).send(error.message);
-//   }
-// });
-
-//Get Logged In User Joined Matches
+//My Matches - Get Logged In User Joined Matches
 route.get("/GetJoinedMatches", Get_User_id, async (req, res) => {
   try {
-    const Data = await tournamentschema.find({
-      "Joined_User.UserId": req.user.id,
-    });
+    const Data = await new MyMatches_Api_Feature(
+      tournamentschema,
+      req.query,
+      req.user.id
+    ).Filter();
     res.send(Data);
   } catch (error) {
     res.status(500).send(error.message);
@@ -147,7 +138,7 @@ route.post(
           Game_Name: req.body.Game_Name,
           Total_Players: req.body.Total_Players,
           Prize_Pool: req.body.Prize_Pool,
-          // Date_Time: req.body.Date_Time,
+          Date_Time: req.body.Date_Time,
         });
         new_tournament.save().then((data) => {
           res.json({ data });

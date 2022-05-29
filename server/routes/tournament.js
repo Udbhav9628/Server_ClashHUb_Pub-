@@ -5,7 +5,11 @@ const UserModal = require("../model/userdata");
 const Get_User_id = require("../Middleware/getuserid");
 const { body, validationResult } = require("express-validator");
 const Guild_Schema = require("../model/Guild");
-const { Api_Feature, MyMatches_Api_Feature } = require("../utils/ApiFeature");
+const {
+  Api_Feature,
+  MyMatches_Api_Feature,
+  Guild_Matches_Api_Feature,
+} = require("../utils/ApiFeature");
 
 // const Errror_Handler = require("../utils/errorhandler");
 
@@ -42,7 +46,11 @@ route.get("/GetJoinedMatches", Get_User_id, async (req, res) => {
 //For App Only
 route.get("/getGuildtournaments/:id", Get_User_id, async (req, res) => {
   try {
-    const Data = await tournamentschema.find({ GuildId: req.params.id });
+    const Data = await new Guild_Matches_Api_Feature(
+      tournamentschema,
+      req.query,
+      req.params.id
+    ).Filter();
     res.send({ Data });
   } catch (error) {
     res.status(500).send(error.message);

@@ -72,4 +72,44 @@ class MyMatches_Api_Feature {
   }
 }
 
-module.exports = { Api_Feature, MyMatches_Api_Feature };
+class Guild_Matches_Api_Feature {
+  constructor(query, queryStr, userid) {
+    this.Query = query; //tournamentschema
+    this.QueryStr = queryStr; //Secudled , Upcomming, or Finished
+    this.User_id = userid; //req.params.id
+  }
+
+  async Filter() {
+    let query;
+    switch (this.QueryStr.MatchType) {
+      case "Ongoing":
+        query = {
+          GuildId: this.User_id,
+          Date_Time: { $lt: Date.now() },
+        };
+        break;
+
+      case "Resultant":
+        query = {
+          GuildId: this.User_id,
+          Date_Time: { $lt: Date.now() },
+        };
+        break;
+
+      default:
+        query = {
+          GuildId: this.User_id,
+          Date_Time: { $gt: Date.now() },
+        };
+        break;
+    }
+    this.Product = await this.Query.find({ ...query });
+    return this.Product;
+  }
+}
+
+module.exports = {
+  Api_Feature,
+  MyMatches_Api_Feature,
+  Guild_Matches_Api_Feature,
+};

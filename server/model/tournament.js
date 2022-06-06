@@ -26,10 +26,6 @@ const tournament_schema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  // Joined_Player: {
-  //   type: Number,
-  //   default: 0,
-  // },
   Joined_User: [
     {
       UserId: {
@@ -49,6 +45,10 @@ const tournament_schema = new mongoose.Schema({
       },
     },
   ],
+  Is_Finished: {
+    type: Boolean,
+    default: false,
+  },
   Date_Time: {
     type: Date,
     required: [true, "Please Enter Date & Time"],

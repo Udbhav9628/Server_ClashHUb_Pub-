@@ -163,23 +163,33 @@ route.put("/Updatetournament/:id", Get_User_id, async (req, res) => {
   try {
     const tournament_found = await tournamentschema.findById(req.params.id);
     if (!tournament_found) {
-      // return next(new Errror_Handler("Something Went Wrong", 404));
       return res.status(404).send("Not Found");
-    } else if (tournament_found.User.toString() !== req.user.id) {
-      //objectid is uhi not present just unhi that's why tostring is coverting it into string//why using to string
+    } else if (tournament_found.UserId.toString() !== req.user.id.toString()) {
       return res.status(404).send("Not Allowed");
     } else {
-      await tournamentschema.findByIdAndUpdate(
+      const response = await tournamentschema.findByIdAndUpdate(
         req.params.id,
         {
           Game_Name: req.body.Game_Name,
           Total_Players: req.body.Total_Players,
           Prize_Pool: req.body.Prize_Pool,
           Joined_User: req.body.Joined_User,
+          Is_Finished: true,
         },
         { new: true, runValidators: true }
       );
-      res.send("Updated Sucessfully");
+      response.Joined_User.forEach(async (Player) => {
+        await UserModal.findByIdAndUpdate(
+          Player.UserId,
+          {
+            $inc: {
+              Wallet_Coins: Player.Kills * parseInt(response.Prize_Pool),
+            },
+          },
+          { new: true }
+        );
+      });
+      return res.send("Result Updated Sucessfully");
     }
   } catch (error) {
     res.status(500).send(error.message);

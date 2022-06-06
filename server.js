@@ -6,6 +6,7 @@ const app = express();
 const connectDB = require("./server/database/database_connection");
 const cors = require("cors");
 const error = require("./server/Middleware/error");
+const bodyParser = require("body-parser");
 
 //Handling uncaught Exception
 //***To Do **/ 1:21 min in video
@@ -20,7 +21,7 @@ connectDB();
 const port = process.env.PORT;
 
 app.use(morgan("tiny"));
-
+app.use(bodyParser.json());
 app.use(express.json());
 app.use(
   express.urlencoded({
@@ -32,6 +33,7 @@ app.use("/", require("./server/routes/Guildroute"));
 app.use("/", require("./server/routes/tournament"));
 app.use("/", require("./server/routes/userdata"));
 app.use("/", require("./server/routes/Payment"));
+app.use("/", require("./server/routes/Notification"));
 
 const server = app.listen(port, () => {
   console.log("The server is running at port 8000");

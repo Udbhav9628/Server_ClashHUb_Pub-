@@ -50,13 +50,14 @@ class MyMatches_Api_Feature {
         query = {
           "Joined_User.UserId": this.User_id,
           Date_Time: { $lt: Date.now() },
+          Is_Finished: false,
         };
         break;
 
       case "Resultant":
         query = {
           "Joined_User.UserId": this.User_id,
-          Date_Time: { $lt: Date.now() },
+          Is_Finished: true,
         };
         break;
 
@@ -86,13 +87,14 @@ class Guild_Matches_Api_Feature {
         query = {
           GuildId: this.User_id,
           Date_Time: { $lt: Date.now() },
+          Is_Finished: false,
         };
         break;
 
       case "Resultant":
         query = {
           GuildId: this.User_id,
-          Date_Time: { $lt: Date.now() },
+          Is_Finished: true,
         };
         break;
 
@@ -100,6 +102,7 @@ class Guild_Matches_Api_Feature {
         query = {
           GuildId: this.User_id,
           Date_Time: { $gt: Date.now() },
+          Is_Finished: false,
         };
         break;
     }

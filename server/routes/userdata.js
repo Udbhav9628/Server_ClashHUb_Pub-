@@ -14,8 +14,8 @@ route.post(
   "/Register",
   [
     body("Name").isLength({ min: 3 }),
-    body("Email").isEmail(),
-    body("Password").isLength({ min: 5 }),
+    body("UserName").isLength({ min: 3 }),
+    body("Phone_No").isLength({ min: 10 }),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -23,15 +23,16 @@ route.post(
       return res.status(400).json({ errors: errors.array() });
     }
     try {
-      let Newuser = await userschema.findOne({ Email: req.body.Email });
+      let Newuser = await userschema.findOne({ Phone_No: req.body.Phone_No });
       if (Newuser) {
         res.status(200).send("User Existed You Can Login Now");
         return;
       }
       const new_user = new userschema({
         Name: req.body.Name,
-        Email: req.body.Email,
-        Password: req.body.Password,
+        UserName: req.body.UserName,
+        Phone_No: req.body.Phone_No,
+        FCMToken: req.body.FCMToken,
       });
       new_user.save().then((data) => {
         res.send(data);
@@ -45,19 +46,19 @@ route.post(
 //Normal Login
 route.post(
   "/Login",
-  [body("Email").isEmail(), body("Password").isLength({ min: 5 })],
+  [body("Name").isEmail(), body("UserName").isLength({ min: 3 })],
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
     try {
-      let user = await userschema.findOne({ Email: req.body.Email });
+      let user = await userschema.findOne({ Phone_No: req.body.Phone_No });
       if (!user) {
         return res
           .status(500)
           .send("Look like you don't have account, Create Your account first");
-      } else if (user.Password === req.body.Password) {
+      } else if (user) {
         const PayLoad = {
           //this is the data will recevive when verify jwt token provided in header - user id
           //TO Do --Save in Hashed with salt and then reverse engineer it when need to use

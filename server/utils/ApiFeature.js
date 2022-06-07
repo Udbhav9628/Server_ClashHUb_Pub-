@@ -106,7 +106,9 @@ class Guild_Matches_Api_Feature {
         };
         break;
     }
-    this.Product = await this.Query.find({ ...query });
+    this.Product = await this.Query.find({ ...query }).sort({
+      Date_Time: 1,
+    });
     return this.Product;
   }
 }

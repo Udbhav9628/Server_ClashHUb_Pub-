@@ -5,14 +5,17 @@ const userdata_schema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  Email: {
+  UserName: {
     type: String,
     required: true,
   },
-  Password: {
+  Phone_No: {
+    type: Number,
+    required: true,
+  },
+  FCMToken: {
     type: String,
     required: true,
-    // select:false -- Need to do later refer project video
   },
   Wallet_Coins: {
     type: Number,
@@ -20,13 +23,15 @@ const userdata_schema = new mongoose.Schema({
     min: [0, "Coins Can be atleast 0"],
     max: [1000, "You Can't add More then 1000 coins"],
   },
-  Date: {
+  Join_Date: {
     type: Date,
     default: Date.now(),
   },
   Role: {
     type: String,
     default: "user",
+    //select:false -- Need to do later refer project video
+    //Trim -- Need to do later refer project video
   },
 });
 

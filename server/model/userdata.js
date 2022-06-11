@@ -4,10 +4,12 @@ const userdata_schema = new mongoose.Schema({
   Name: {
     type: String,
     required: true,
+    trim: true,
   },
   UserName: {
     type: String,
     required: true,
+    trim: true,
   },
   Phone_No: {
     type: Number,
@@ -17,9 +19,13 @@ const userdata_schema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  User_Uid: {
+    type: String,
+    required: true,
+  },
   Wallet_Coins: {
     type: Number,
-    default: 0,
+    default: 500,
     min: [0, "Coins Can be atleast 0"],
     max: [1000, "You Can't add More then 1000 coins"],
   },

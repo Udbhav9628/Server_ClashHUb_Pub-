@@ -4,8 +4,10 @@ const dotenv = require("dotenv");
 const route = express.Router();
 const userschema = require("../model/userdata");
 const { body, validationResult } = require("express-validator");
+const { getAuth } = require("firebase-admin/auth");
 var jwt = require("jsonwebtoken");
 const Get_User_id = require("../Middleware/getuserid");
+
 dotenv.config({ path: path.join(__dirname, "config.env") });
 const stripe = require("stripe")(process.env.STRIPE_SECREAT_KEY);
 
@@ -23,67 +25,85 @@ route.post(
       return res.status(400).json({ errors: errors.array() });
     }
     try {
-      let Newuser = await userschema.findOne({ Phone_No: req.body.Phone_No });
+      const Firebase_Token = req.header("Firebase_Auth_Token");
+      if (!Firebase_Token) {
+        return res.status(404).send("No Firebase Auth Token");
+      }
+      const decodedToken = await getAuth().verifyIdToken(Firebase_Token);
+      const uid = decodedToken.uid;
+
+      let Newuser = await userschema.findOne({ User_Uid: uid });
       if (Newuser) {
         res.status(200).send("User Existed You Can Login Now");
         return;
       }
-      const new_user = new userschema({
+      const user = new userschema({
         Name: req.body.Name,
         UserName: req.body.UserName,
         Phone_No: req.body.Phone_No,
         FCMToken: req.body.FCMToken,
+        User_Uid: uid,
       });
-      new_user.save().then((data) => {
-        res.send(data);
-      });
+      const NewUser = await user.save();
+      res.status(200).send(NewUser);
+      // const Fire = await getAuth().createUser({
+      //   uid: NewUser._id.toString(),
+      //   // phoneNumber: `+${NewUser.Phone_No}`,
+      //   displayName: NewUser.Name,
+      // });
+      // console.log(Fire);
     } catch (error) {
       res.status(500).send(error.message);
+      console.log(error.message);
     }
   }
 );
 
 //Normal Login
-route.post(
-  "/Login",
-  [body("Name").isEmail(), body("UserName").isLength({ min: 3 })],
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+route.get("/Login", async (req, res) => {
+  try {
+    //FireBase
+    const Firebase_Token = req.header("Firebase_Auth_Token");
+    if (!Firebase_Token) {
+      return res.status(404).send("No Firebase Auth Token");
     }
-    try {
-      let user = await userschema.findOne({ Phone_No: req.body.Phone_No });
-      if (!user) {
-        return res
-          .status(500)
-          .send("Look like you don't have account, Create Your account first");
-      } else if (user) {
-        const PayLoad = {
-          //this is the data will recevive when verify jwt token provided in header - user id
-          //TO Do --Save in Hashed with salt and then reverse engineer it when need to use
-          id: user.id, //Logged User id is saved in authtoken
-          Name: user.Name, //Logged User Name is saved in authtoken   TO Do --Save in Hashed with salt
-        };
-        const Auth_Token = jwt.sign(PayLoad, process.env.JWTSCREAT);
-        return res.status(200).json({
-          id: user._id,
-          User: user.Name,
-          Joined_Date: user.Date,
-          Wallet: user.Wallet_Coins,
-          Role: user.Role,
-          Auth_Token,
-        });
-      } else {
-        return res
-          .status(500)
-          .json({ Message: "Login With Correct Credientals Please" });
-      }
-    } catch (error) {
-      res.status(500).send(error.message);
-    }
+
+    const decodedToken = await getAuth().verifyIdToken(Firebase_Token);
+    const uid = decodedToken.uid;
+    console.log(uid);
+
+    //FireBase
+    // let user = await userschema.findOne({ Phone_No: req.body.Phone_No });
+    // if (!user) {
+    //   return res
+    //     .status(500)
+    //     .send("Look like you don't have account, Create Your account first");
+    // } else if (user) {
+    //   const PayLoad = {
+    //     //this is the data will recevive when verify jwt token provided in header - user id
+    //     //TO Do --Save in Hashed with salt and then reverse engineer it when need to use
+    //     id: user.id, //Logged User id is saved in authtoken
+    //     Name: user.Name, //Logged User Name is saved in authtoken   TO Do --Save in Hashed with salt
+    //   };
+    //   const Auth_Token = jwt.sign(PayLoad, process.env.JWTSCREAT);
+    //   return res.status(200).json({
+    //     id: user._id,
+    //     User: user.Name,
+    //     Joined_Date: user.Date,
+    //     Wallet: user.Wallet_Coins,
+    //     Role: user.Role,
+    //     Auth_Token,
+    //   });
+    // } else {
+    //   return res
+    //     .status(500)
+    //     .json({ Message: "Login With Correct Credientals Please" });
+    // }
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send(error.message);
   }
-);
+});
 
 //Login with Google Route
 //Need to check for security Purpose

@@ -7,6 +7,8 @@ const connectDB = require("./server/database/database_connection");
 const cors = require("cors");
 const error = require("./server/Middleware/error");
 const bodyParser = require("body-parser");
+var admin = require("firebase-admin");
+var serviceAccount = require("./firebase.json");
 
 //Handling uncaught Exception
 //***To Do **/ 1:21 min in video

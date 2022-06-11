@@ -202,7 +202,7 @@ route.delete("/Deletetournament/:id", Get_User_id, async (req, res) => {
     const tournament_found = await tournamentschema.findById(req.params.id);
     if (!tournament_found) {
       return res.status(404).send("Not allowed");
-    } else if (tournament_found.User.toString() !== req.user.id) {
+    } else if (tournament_found.User.toString() !== req.user.id.toString()) {
       //objectid is uhi not present just unhi that's why tostring is coverting it into string
       return res.status(200).send("Not Allowed");
     } else {

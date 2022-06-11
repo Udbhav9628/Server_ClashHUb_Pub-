@@ -45,7 +45,22 @@ route.post(
         User_Uid: uid,
       });
       const NewUser = await user.save();
-      res.status(200).send(NewUser);
+      console.log("This is user");
+      console.log(NewUser);
+      const PayLoad = {
+        id: NewUser._id,
+        Name: NewUser.Name,
+      };
+      const Auth_Token = jwt.sign(PayLoad, process.env.JWTSCREAT);
+      return res.status(200).json({
+        id: NewUser._id,
+        User: NewUser.Name,
+        Joined_Date: NewUser.Date,
+        Wallet: NewUser.Wallet_Coins,
+        User_Uid: NewUser.User_Uid,
+        Role: NewUser.Role,
+        Auth_Token,
+      });
       // const Fire = await getAuth().createUser({
       //   uid: NewUser._id.toString(),
       //   // phoneNumber: `+${NewUser.Phone_No}`,
@@ -60,7 +75,7 @@ route.post(
 );
 
 //Normal Login
-route.get("/Login", async (req, res) => {
+route.put("/Login", async (req, res) => {
   try {
     //FireBase
     const Firebase_Token = req.header("Firebase_Auth_Token");
@@ -70,35 +85,34 @@ route.get("/Login", async (req, res) => {
 
     const decodedToken = await getAuth().verifyIdToken(Firebase_Token);
     const uid = decodedToken.uid;
-    console.log(uid);
 
-    //FireBase
-    // let user = await userschema.findOne({ Phone_No: req.body.Phone_No });
-    // if (!user) {
-    //   return res
-    //     .status(500)
-    //     .send("Look like you don't have account, Create Your account first");
-    // } else if (user) {
-    //   const PayLoad = {
-    //     //this is the data will recevive when verify jwt token provided in header - user id
-    //     //TO Do --Save in Hashed with salt and then reverse engineer it when need to use
-    //     id: user.id, //Logged User id is saved in authtoken
-    //     Name: user.Name, //Logged User Name is saved in authtoken   TO Do --Save in Hashed with salt
-    //   };
-    //   const Auth_Token = jwt.sign(PayLoad, process.env.JWTSCREAT);
-    //   return res.status(200).json({
-    //     id: user._id,
-    //     User: user.Name,
-    //     Joined_Date: user.Date,
-    //     Wallet: user.Wallet_Coins,
-    //     Role: user.Role,
-    //     Auth_Token,
-    //   });
-    // } else {
-    //   return res
-    //     .status(500)
-    //     .json({ Message: "Login With Correct Credientals Please" });
-    // }
+    let user = await userschema.findOneAndUpdate(
+      { User_Uid: uid },
+      { FCMToken: req.body.Msgtoken }
+    );
+    console.log("This is user");
+    console.log(user);
+    if (user) {
+      const PayLoad = {
+        //this is the data will recevive when verify jwt token provided in header - user id
+        //TO Do --Save in Hashed with salt and then reverse engineer it when need to use
+        id: user._id, //Logged User id is saved in authtoken
+        Name: user.Name, //Logged User Name is saved in authtoken   TO Do --Save in Hashed with salt
+      };
+      const Auth_Token = jwt.sign(PayLoad, process.env.JWTSCREAT);
+      return res.status(200).json({
+        id: user._id,
+        User: user.Name,
+        Joined_Date: user.Date,
+        User_Uid: user.User_Uid,
+        Wallet: user.Wallet_Coins,
+        Auth_Token,
+      });
+    } else {
+      return res
+        .status(500)
+        .send("Look like you don't have account, Create Your account first");
+    }
   } catch (error) {
     console.log(error.message);
     res.status(500).send(error.message);

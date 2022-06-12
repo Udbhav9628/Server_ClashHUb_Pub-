@@ -45,8 +45,6 @@ route.post(
         User_Uid: uid,
       });
       const NewUser = await user.save();
-      console.log("This is user");
-      console.log(NewUser);
       const PayLoad = {
         id: NewUser._id,
         Name: NewUser.Name,

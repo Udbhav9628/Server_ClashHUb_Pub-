@@ -11,17 +11,27 @@ const Guild_Schema = new mongoose.Schema({
     required: [true, "Please Enter Guild's Name"],
     trim: true,
   },
+  GuildID: {
+    type: String,
+    required: [true, "Please Enter Guild's ID"],
+    trim: true,
+  },
   GuildDescription: {
     type: String,
     required: [true, "Please Enter Guild's Description"],
     trim: true,
   },
-  Members: [
+  Followers: [
     {
-      UserId: {
+      FollowersId: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref: "userdata",
+      },
+      FollowersName: {
+        type: String,
+        required: true,
+        trim: true,
       },
     },
   ],

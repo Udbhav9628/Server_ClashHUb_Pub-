@@ -37,34 +37,45 @@ route.post(
         res.status(200).send("User Existed You Can Login Now");
         return;
       }
-      const user = new userschema({
-        Name: req.body.Name,
+      const isUserNameExist = await userschema.findOne({
         UserName: req.body.UserName,
-        Phone_No: req.body.Phone_No,
-        FCMToken: req.body.FCMToken,
-        User_Uid: uid,
       });
-      const NewUser = await user.save();
-      const PayLoad = {
-        id: NewUser._id,
-        Name: NewUser.Name,
-      };
-      const Auth_Token = jwt.sign(PayLoad, process.env.JWTSCREAT);
-      return res.status(200).json({
-        id: NewUser._id,
-        User: NewUser.Name,
-        Joined_Date: NewUser.Date,
-        Wallet: NewUser.Wallet_Coins,
-        User_Uid: NewUser.User_Uid,
-        Role: NewUser.Role,
-        Auth_Token,
-      });
-      // const Fire = await getAuth().createUser({
-      //   uid: NewUser._id.toString(),
-      //   // phoneNumber: `+${NewUser.Phone_No}`,
-      //   displayName: NewUser.Name,
-      // });
-      // console.log(Fire);
+      if (isUserNameExist) {
+        console.log("isUserNameExist");
+        return res.status(200).send({
+          Message: "Registeration Failed , UserName Existed , Choose Another",
+        });
+      } else {
+        const user = new userschema({
+          Name: req.body.Name,
+          UserName: req.body.UserName,
+          Phone_No: req.body.Phone_No,
+          FCMToken: req.body.FCMToken,
+          User_Uid: uid,
+        });
+        const NewUser = await user.save();
+        const PayLoad = {
+          id: NewUser._id,
+          Name: NewUser.Name,
+        };
+        const Auth_Token = jwt.sign(PayLoad, process.env.JWTSCREAT);
+        console.log("in main");
+        return res.status(200).json({
+          id: NewUser._id,
+          User: NewUser.Name,
+          Joined_Date: NewUser.Date,
+          Wallet: NewUser.Wallet_Coins,
+          User_Uid: NewUser.User_Uid,
+          Role: NewUser.Role,
+          Auth_Token,
+        });
+        // const Fire = await getAuth().createUser({
+        //   uid: NewUser._id.toString(),
+        //   // phoneNumber: `+${NewUser.Phone_No}`,
+        //   displayName: NewUser.Name,
+        // });
+        // console.log(Fire);
+      }
     } catch (error) {
       res.status(500).send(error.message);
       console.log(error.message);
@@ -88,8 +99,6 @@ route.put("/Login", async (req, res) => {
       { User_Uid: uid },
       { FCMToken: req.body.Msgtoken }
     );
-    console.log("This is user");
-    console.log(user);
     if (user) {
       const PayLoad = {
         //this is the data will recevive when verify jwt token provided in header - user id

@@ -45,6 +45,9 @@ route.post(
     body("GuildName", "Guild Name must be atleaset 3 char").isLength({
       min: 3,
     }),
+    body("GuildID", "Guild ID must be atleaset 3 char").isLength({
+      min: 3,
+    }),
     body(
       "GuildDescription",
       "Guild Description must be atleaset 3 char"
@@ -65,16 +68,15 @@ route.post(
         return res.status(500).send("One User can one have guild only");
       } else {
         let Guild = await Guild_Schema.findOne({
-          GuildName: req.body.GuildName,
+          GuildID: req.body.GuildID,
         });
         if (Guild) {
-          res
-            .status(500)
-            .send("Guild of This Name already existed, Chose different name");
+          res.status(500).send("ID already Taken, Chose Another");
           return;
         }
         const new_Guild = new Guild_Schema({
           OwnerId: req.user.id,
+          GuildID: req.body.GuildID,
           GuildName: req.body.GuildName,
           GuildDescription: req.body.GuildDescription,
         });

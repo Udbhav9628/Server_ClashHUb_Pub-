@@ -25,9 +25,14 @@ const userdata_schema = new mongoose.Schema({
   },
   Wallet_Coins: {
     type: Number,
-    default: 500,
+    default: 0,
     min: [0, "Coins Can be atleast 0"],
-    max: [1000, "You Can't add More then 1000 coins"],
+    max: [10000, "You Can't add More then 1000 coins"],
+  },
+  Club_Wallet_Coins: {
+    type: Number,
+    default: 0,
+    min: [0, "Coins Can be atleast 0"],
   },
   Join_Date: {
     type: Date,

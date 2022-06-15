@@ -18,6 +18,7 @@ route.get("/fetchallGuild", Get_User_id, async (req, res) => {
 });
 
 //Get User's Guild Details
+//To Do - Find by is istead of findone if possible
 route.get("/getUserGuildDetails", Get_User_id, async (req, res) => {
   try {
     let Guild = await Guild_Schema.findOne({ OwnerId: req.user.id });
@@ -65,7 +66,7 @@ route.post(
         OwnerId: req.user.id,
       });
       if (isGuildallreadyAvailable) {
-        return res.status(500).send("One User can one have guild only");
+        return res.status(500).send("One User can have one guild only");
       } else {
         let Guild = await Guild_Schema.findOne({
           GuildID: req.body.GuildID,

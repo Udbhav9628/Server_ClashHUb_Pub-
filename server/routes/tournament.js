@@ -2,6 +2,9 @@ const express = require("express");
 const route = express.Router();
 const tournamentschema = require("../model/tournament");
 const UserModal = require("../model/userdata");
+const { v4: uuidv4 } = require("uuid");
+const TransactionModal = require("../model/Transaction");
+const GuildTransaction = require("../model/GuildTransaction");
 const Get_User_id = require("../Middleware/getuserid");
 const { body, validationResult } = require("express-validator");
 const Guild_Schema = require("../model/Guild");
@@ -97,16 +100,20 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
         const User = await UserModal.findById(req.user.id);
         if (User) {
           let New_Amount = User.Wallet_Coins - req.body.Amount_to_be_paid;
-          await UserModal.findByIdAndUpdate(
-            req.user.id, ////comming from jwt token
-            {
-              Wallet_Coins: New_Amount,
-            },
-            { new: true }
-          );
-          await match.save();
-          //Join User will be saved after wallet ballance updated - but one problem what if wallet ballance updated but error occured while performing match.save() function
-          res.status(200).send("Wallet Updated , Match Joined Successfully");
+          if (New_Amount >= 0) {
+            await UserModal.findByIdAndUpdate(
+              req.user.id, ////comming from jwt token
+              {
+                Wallet_Coins: New_Amount,
+              },
+              { new: true }
+            );
+            await match.save();
+            //Join User will be saved after wallet ballance updated - but one problem what if wallet ballance updated but error occured while performing match.save() function
+            res.status(200).send("Wallet Updated , Match Joined Successfully");
+          } else {
+            res.status(500).send("Low Balance");
+          }
         } else {
           res.status(500).send("User Not Found");
         }
@@ -159,7 +166,7 @@ route.post(
 );
 
 //Update -- Admin Route
-route.put("/Updatetournament/:id", Get_User_id, async (req, res) => {
+route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
   try {
     const tournament_found = await tournamentschema.findById(req.params.id);
     if (!tournament_found) {
@@ -174,10 +181,44 @@ route.put("/Updatetournament/:id", Get_User_id, async (req, res) => {
           Total_Players: req.body.Total_Players,
           Prize_Pool: req.body.Prize_Pool,
           Joined_User: req.body.Joined_User,
-          Is_Finished: true,
+          // Is_Finished: true,
         },
         { new: true, runValidators: true }
       );
+
+      //10 is match entry fee To Do later
+      const percentToGet = 5;
+      const Total_earning =
+        response.Joined_User.length * (10 - parseInt(response.Prize_Pool));
+      const Amount_to_MinusFromEarning = (percentToGet / 100) * Total_earning;
+      const Guild_Amount = Total_earning - Amount_to_MinusFromEarning;
+
+      if (Guild_Amount > 0) {
+        await UserModal.findByIdAndUpdate(
+          req.user.id,
+          {
+            $inc: {
+              Club_Wallet_Coins: Guild_Amount,
+            },
+          },
+          { new: true }
+        );
+
+        const New_Guild_Transaction = new GuildTransaction({
+          MatchId: response._id,
+          GuildId: response.GuildId,
+          Transaction_Id: uuidv4(),
+          Message:
+            "Added For " +
+            response.Joined_User.length +
+            ` Players in ${response.Game_Name} Match`,
+          Amount: Guild_Amount,
+          Type: true,
+          Date: Date.now(),
+        });
+        await New_Guild_Transaction.save();
+      }
+
       response.Joined_User.forEach(async (Player) => {
         await UserModal.findByIdAndUpdate(
           Player.UserId,
@@ -188,10 +229,23 @@ route.put("/Updatetournament/:id", Get_User_id, async (req, res) => {
           },
           { new: true }
         );
+        const New_Transaction = new TransactionModal({
+          User: Player.UserId,
+          Transaction_Id: response._id, // Match Id
+          Message:
+            "Added For " +
+            Player.Kills * parseInt(response.Prize_Pool) +
+            ` Kills in ${response.Game_Name} Match`,
+          Amount: Player.Kills * parseInt(response.Prize_Pool),
+          Type: true,
+          Date: Date.now(),
+        });
+        await New_Transaction.save();
       });
       return res.send("Result Updated Sucessfully");
     }
   } catch (error) {
+    console.log(error.message);
     res.status(500).send(error.message);
   }
 });

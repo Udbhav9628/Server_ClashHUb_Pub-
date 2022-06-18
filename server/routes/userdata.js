@@ -9,7 +9,6 @@ var jwt = require("jsonwebtoken");
 const Get_User_id = require("../Middleware/getuserid");
 
 dotenv.config({ path: path.join(__dirname, "config.env") });
-const stripe = require("stripe")(process.env.STRIPE_SECREAT_KEY);
 
 //Create User
 route.post(
@@ -126,40 +125,6 @@ route.put("/Login", async (req, res) => {
   }
 });
 
-//Login with Google Route
-//Need to check for security Purpose
-route.post("/Loginwithgoogle", [body("Email").isEmail()], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-  try {
-    let user = await userschema.findOne({ Email: req.body.Email });
-    if (!user) {
-      return res
-        .status(500)
-        .send("Look like you don't have account, Create Your account first");
-    } else {
-      const PayLoad = {
-        //this is the data will recevive when verify jwt token provided in header - user id
-        //TO Do --Save in Hashed with salt and then reverse engineer it when need to use
-        id: user.id, //Logged User id is saved in authtoken
-        Name: user.Name, //Logged User Name is saved in authtoken   TO --Save in Hashed with salt
-      };
-      const Auth_Token = jwt.sign(PayLoad, process.env.JWTSCREAT);
-      res.json({
-        User: user.Name,
-        Joined_Date: user.Date,
-        Wallet: user.Wallet_Coins,
-        Role: user.Role,
-        Auth_Token,
-      });
-    }
-  } catch (error) {
-    res.status(500).send(error.message);
-  }
-});
-
 //Geting Logged in User Details
 route.get("/getUserDetails", Get_User_id, async (req, res) => {
   try {
@@ -181,9 +146,12 @@ route.get("/getSpecificUserDetails/:id", async (req, res) => {
     if (!user) {
       return res.status(500).send("User Not Exist May be");
     } else {
-      return res.status(200).json({ Name: user.Name, Joined: user.Date });
+      return res
+        .status(200)
+        .json({ Name: user.Name, Joined: user.Date, UserName: user.UserName });
     }
   } catch (error) {
+    console.log(error.message);
     res.status(500).send(error.message);
   }
 });

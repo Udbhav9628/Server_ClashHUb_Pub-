@@ -78,16 +78,7 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
     const tournament_found = await tournamentschema.findById(req.params.id);
     if (!tournament_found) {
       return res.status(404).send("Not Found");
-    }
-    // else if (tournament_found.User.toString() !== req.user.id) {
-    //   // need to modify
-    //   return res.status(404).send("You Have already Joined The Match");
-    // }
-    else {
-      const User_Details = {
-        UserId: req.user.id, //logged in user id
-        UserName: req.user.Name,
-      };
+    } else {
       const match = await tournamentschema.findById(req.params.id);
       const isJoined = match.Joined_User.find(
         (user) => user.UserId.toString() === req.user.id.toString()
@@ -95,20 +86,23 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
       if (isJoined) {
         res.status(200).send("You Have already Joined");
       } else {
+        const User_Details = {
+          UserId: req.user.id,
+          UserName: req.user.Name,
+        };
         match.Joined_User.push(User_Details);
-        match.Joined_Player = match.Joined_User.length;
+        await match.save();
         const User = await UserModal.findById(req.user.id);
         if (User) {
           let New_Amount = User.Wallet_Coins - req.body.Amount_to_be_paid;
           if (New_Amount >= 0) {
             await UserModal.findByIdAndUpdate(
-              req.user.id, ////comming from jwt token
+              req.user.id,
               {
                 Wallet_Coins: New_Amount,
               },
               { new: true }
             );
-            await match.save();
             //Join User will be saved after wallet ballance updated - but one problem what if wallet ballance updated but error occured while performing match.save() function
             res.status(200).send("Wallet Updated , Match Joined Successfully");
           } else {
@@ -172,7 +166,7 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
     if (!tournament_found) {
       return res.status(404).send("Not Found");
     } else if (tournament_found.UserId.toString() !== req.user.id.toString()) {
-      return res.status(404).send("Not Allowed");
+      return res.status(500).send("Not Allowed");
     } else {
       const response = await tournamentschema.findByIdAndUpdate(
         req.params.id,
@@ -181,7 +175,7 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
           Total_Players: req.body.Total_Players,
           Prize_Pool: req.body.Prize_Pool,
           Joined_User: req.body.Joined_User,
-          // Is_Finished: true,
+          Is_Finished: true,
         },
         { new: true, runValidators: true }
       );

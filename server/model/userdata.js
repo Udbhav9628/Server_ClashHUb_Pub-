@@ -10,6 +10,7 @@ const userdata_schema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
+    // unique: true, -- see what is this
   },
   Phone_No: {
     type: Number,

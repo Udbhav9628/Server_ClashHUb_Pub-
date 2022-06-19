@@ -31,7 +31,9 @@ class Api_Feature {
           UserId: { $ne: this.User_id },
           Date_Time: { $gt: Date.now() },
         };
-    this.Product = await this.Query.find({ ...query });
+    this.Product = await this.Query.find({ ...query }).sort({
+      Date_Time: 1,
+    });
     return this.Product;
   }
 }
@@ -68,7 +70,9 @@ class MyMatches_Api_Feature {
         };
         break;
     }
-    this.Product = await this.Query.find({ ...query });
+    this.Product = await this.Query.find({ ...query }).sort({
+      Date_Time: 1,
+    });
     return this.Product;
   }
 }

@@ -75,11 +75,10 @@ route.get("/gettournamentdetails/:id", Get_User_id, async (req, res) => {
 //Two await in single route check if is ok
 route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
   try {
-    const tournament_found = await tournamentschema.findById(req.params.id);
-    if (!tournament_found) {
+    const match = await tournamentschema.findById(req.params.id);
+    if (!match) {
       return res.status(404).send("Not Found");
     } else {
-      const match = await tournamentschema.findById(req.params.id);
       const isJoined = match.Joined_User.find(
         (user) => user.UserId.toString() === req.user.id.toString()
       );

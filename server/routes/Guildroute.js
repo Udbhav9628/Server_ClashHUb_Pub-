@@ -1,7 +1,5 @@
 const express = require("express");
 const route = express.Router();
-const tournamentschema = require("../model/tournament");
-const UserModal = require("../model/userdata");
 const Guild_Schema = require("../model/Guild");
 const Get_User_id = require("../Middleware/getuserid");
 const Checkisadmin = require("../Middleware/Isadmin");
@@ -66,29 +64,49 @@ route.post(
         OwnerId: req.user.id,
       });
       if (isGuildallreadyAvailable) {
-        return res.status(500).send("One User can have one guild only");
+        return res.status(503).send("One User can have one guild only");
       } else {
         let Guild = await Guild_Schema.findOne({
           GuildID: req.body.GuildID,
         });
         if (Guild) {
-          res.status(500).send("ID already Taken, Chose Another");
-          return;
+          return res.status(501).send("ID already Taken, Chose Another");
+        } else {
+          const new_Guild = new Guild_Schema({
+            OwnerId: req.user.id,
+            GuildID: req.body.GuildID,
+            GuildName: req.body.GuildName,
+            GuildDescription: req.body.GuildDescription,
+          });
+          await new_Guild.save();
+          return res.status(200).send("created sucessfully");
         }
-        const new_Guild = new Guild_Schema({
-          OwnerId: req.user.id,
-          GuildID: req.body.GuildID,
-          GuildName: req.body.GuildName,
-          GuildDescription: req.body.GuildDescription,
-        });
-        new_Guild.save().then((data) => {
-          res.json({ data });
-        });
       }
     } catch (error) {
-      res.status(500).send(error.message);
+      console.log(error.message);
+      res.status(505).send(error.message);
     }
   }
 );
+
+route.put("/Join_Guild/:id", Get_User_id, async (req, res) => {
+  try {
+    const GuildFollower = await Guild_Schema.findById(req.params.id);
+    if (!GuildFollower) {
+      return res.status(404).send("GuildFollower Not Found");
+    } else {
+      const User_Details = {
+        FollowersId: req.user.id,
+        FollowersName: req.user.Name,
+      };
+      GuildFollower.Followers.push(User_Details);
+      await GuildFollower.save();
+      return res.status(200).send("Joined Successfully");
+    }
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send(error.message);
+  }
+});
 
 module.exports = route;

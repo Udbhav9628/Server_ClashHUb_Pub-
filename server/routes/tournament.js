@@ -85,16 +85,19 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
       if (isJoined) {
         res.status(200).send("You Have already Joined");
       } else {
-        const User_Details = {
-          UserId: req.user.id,
-          UserName: req.user.Name,
-        };
-        match.Joined_User.push(User_Details);
-        await match.save();
         const User = await UserModal.findById(req.user.id);
         if (User) {
           let New_Amount = User.Wallet_Coins - req.body.Amount_to_be_paid;
-          if (New_Amount >= 0) {
+          if (
+            New_Amount >= 0 &&
+            match.Joined_User.length < match.Total_Players
+          ) {
+            const User_Details = {
+              UserId: req.user.id,
+              UserName: req.user.Name,
+            };
+            match.Joined_User.push(User_Details);
+            await match.save();
             await UserModal.findByIdAndUpdate(
               req.user.id,
               {
@@ -102,10 +105,23 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
               },
               { new: true }
             );
+            const New_Transaction = new TransactionModal({
+              User: req.user.id,
+              Transaction_Id: match._id, // Match Id
+              Message:
+                `Deducted ${req.body.Amount_to_be_paid} For Joining` +
+                ` ${match.Game_Name}`,
+              Amount: req.body.Amount_to_be_paid,
+              Type: false, //means deducted
+              Date: Date.now(),
+            });
+            await New_Transaction.save();
             //Join User will be saved after wallet ballance updated - but one problem what if wallet ballance updated but error occured while performing match.save() function
-            res.status(200).send("Wallet Updated , Match Joined Successfully");
+            return res
+              .status(200)
+              .send("Wallet Updated , Match Joined Successfully");
           } else {
-            res.status(500).send("Low Balance");
+            res.status(600).send("Low Balance, or slots full");
           }
         } else {
           res.status(500).send("User Not Found");

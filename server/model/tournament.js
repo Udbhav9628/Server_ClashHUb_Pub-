@@ -17,12 +17,26 @@ const tournament_schema = new mongoose.Schema({
     required: [true, "Please Enter Game Name"],
     trim: true,
   },
+  GameType: {
+    type: String,
+    required: true,
+    enum: ["Solo", "Duo", "Squad"],
+  },
+  Map: {
+    type: String,
+    required: [true, "Please Provide Map"],
+    trim: true,
+  },
   Total_Players: {
     type: Number,
     required: [true, "Please Enter Players"],
-    maxLength: [3, "Too much players"],
+    enum: [20, 40, 60, 80, 100],
   },
-  Prize_Pool: {
+  EntryFee: {
+    type: Number,
+    required: true,
+  },
+  Perkill_Prize: {
     type: Number,
     required: true,
   },

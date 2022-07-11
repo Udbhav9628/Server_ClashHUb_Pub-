@@ -83,7 +83,7 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
         (user) => user.UserId.toString() === req.user.id.toString()
       );
       if (isJoined) {
-        res.status(200).send("You Have already Joined");
+        return res.status(200).send("You Have already Joined");
       } else {
         const User = await UserModal.findById(req.user.id);
         if (User) {
@@ -139,14 +139,17 @@ route.post(
   Get_User_id,
   [
     body("Game_Name", "Game_Name must be atleaset 3 char").isLength({ min: 3 }),
-    body("Prize_Pool", "Prize_Pool must be atleaset 3 char").isLength({
+    body("Perkill_Prize", "Perkill_Prize must be atleaset 1 char").isLength({
+      min: 1,
+    }),
+    body("EntryFee", "EntryFee must be atleaset 1 char").isLength({
       min: 1,
     }),
   ],
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(403).json({ errors: errors.array() });
     }
     try {
       let Guild = await Guild_Schema.findById(req.body.Guild_Id);
@@ -160,8 +163,11 @@ route.post(
           GuildId: Guild._id,
           UserId: req.user.id,
           Game_Name: req.body.Game_Name,
+          GameType: req.body.GameType,
+          Map: req.body.GameMap,
           Total_Players: req.body.Total_Players,
-          Prize_Pool: req.body.Prize_Pool,
+          EntryFee: req.body.EntryFee,
+          Perkill_Prize: req.body.Perkill_Prize,
           Date_Time: req.body.Date_Time,
         });
         new_tournament.save().then((data) => {
@@ -198,7 +204,8 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
       //10 is match entry fee To Do later
       const percentToGet = 5;
       const Total_earning =
-        response.Joined_User.length * (10 - parseInt(response.Prize_Pool));
+        response.Joined_User.length *
+        (response.EntryFee - parseInt(response.Prize_Pool));
       const Amount_to_MinusFromEarning = (percentToGet / 100) * Total_earning;
       const Guild_Amount = Total_earning - Amount_to_MinusFromEarning;
 

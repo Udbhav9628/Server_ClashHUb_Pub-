@@ -92,16 +92,24 @@ route.post(
 route.put("/Join_Guild/:id", Get_User_id, async (req, res) => {
   try {
     const GuildFollower = await Guild_Schema.findById(req.params.id);
+    console.log(GuildFollower);
     if (!GuildFollower) {
       return res.status(404).send("GuildFollower Not Found");
     } else {
-      const User_Details = {
-        FollowersId: req.user.id,
-        FollowersName: req.user.Name,
-      };
-      GuildFollower.Followers.push(User_Details);
-      await GuildFollower.save();
-      return res.status(200).send("Joined Successfully");
+      const isJoined = GuildFollower.Followers.find(
+        (Follower) => Follower.FollowersId.toString() === req.user.id
+      );
+      if (isJoined) {
+        return res.status(200).send("You Have already Joined");
+      } else {
+        const User_Details = {
+          FollowersId: req.user.id,
+          FollowersName: req.user.Name,
+        };
+        GuildFollower.Followers.push(User_Details);
+        await GuildFollower.save();
+        return res.status(200).send("Joined Successfully");
+      }
     }
   } catch (error) {
     console.log(error.message);

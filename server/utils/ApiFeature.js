@@ -48,25 +48,33 @@ class MyMatches_Api_Feature {
   async Filter() {
     let query;
     switch (this.QueryStr.MatchType) {
+      case "Scheduled":
+        query = {
+          "Joined_User.UserId": this.User_id,
+          Date_Time: { $gt: Date.now() },
+        };
+        break;
+
       case "Ongoing":
         query = {
           "Joined_User.UserId": this.User_id,
           Date_Time: { $lt: Date.now() },
-          Is_Finished: false,
+          Match_Status: "Started",
         };
         break;
 
       case "Resultant":
         query = {
           "Joined_User.UserId": this.User_id,
-          Is_Finished: true,
+          Match_Status: "Completed",
         };
         break;
 
-      default:
+      case "Cancelled":
         query = {
           "Joined_User.UserId": this.User_id,
-          Date_Time: { $gt: Date.now() },
+          Date_Time: { $lt: Date.now() },
+          Match_Status: "Scheduled",
         };
         break;
     }
@@ -87,26 +95,33 @@ class Guild_Matches_Api_Feature {
   async Filter() {
     let query;
     switch (this.QueryStr.MatchType) {
+      case "Scheduled":
+        query = {
+          GuildId: this.User_id,
+          Date_Time: { $gt: Date.now() },
+          // Match_Status: "Scheduled",
+        };
+        break;
       case "Ongoing":
         query = {
           GuildId: this.User_id,
           Date_Time: { $lt: Date.now() },
-          Is_Finished: false,
+          Match_Status: "Started",
         };
         break;
 
       case "Resultant":
         query = {
           GuildId: this.User_id,
-          Is_Finished: true,
+          Match_Status: "Completed",
         };
         break;
 
-      default:
+      case "Cancelled":
         query = {
           GuildId: this.User_id,
-          Date_Time: { $gt: Date.now() },
-          Is_Finished: false,
+          Date_Time: { $lt: Date.now() },
+          Match_Status: "Scheduled",
         };
         break;
     }

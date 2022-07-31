@@ -51,6 +51,10 @@ const tournament_schema = new mongoose.Schema({
         type: String,
         required: true,
       },
+      InGameName: {
+        type: String,
+        required: true,
+      },
       Kills: {
         type: Number,
         min: [0, "Kills Must Be at Least 20"],
@@ -59,9 +63,24 @@ const tournament_schema = new mongoose.Schema({
       },
     },
   ],
-  Is_Finished: {
-    type: Boolean,
-    default: false,
+  Match_Status: {
+    type: String,
+    required: true,
+    enum: ["Scheduled", "Started", "Completed"], //Started means room id password updated only
+  },
+  RoomDetails: {
+    Name: {
+      type: String,
+      maxlength: 35,
+      default: "null",
+      trim: true,
+    },
+    Password: {
+      type: String,
+      maxlength: 15,
+      default: "null",
+      trim: true,
+    },
   },
   Date_Time: {
     type: Date,

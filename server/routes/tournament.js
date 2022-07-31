@@ -60,17 +60,6 @@ route.get("/getGuildtournaments/:id", Get_User_id, async (req, res) => {
   }
 });
 
-// Get Specific Tournament Details
-//For Web Only
-route.get("/gettournamentdetails/:id", Get_User_id, async (req, res) => {
-  try {
-    const Data = await tournamentschema.find({ User: req.user.id });
-    res.send({ Data });
-  } catch (error) {
-    res.status(500).send(error.message);
-  }
-});
-
 //Join Match Route - put Request
 //Two await in single route check if is ok
 route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
@@ -95,6 +84,7 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
             const User_Details = {
               UserId: req.user.id,
               UserName: req.user.Name,
+              InGameName: req.body.InGameName,
             };
             match.Joined_User.push(User_Details);
             await match.save();
@@ -168,6 +158,7 @@ route.post(
           Total_Players: req.body.Total_Players,
           EntryFee: req.body.EntryFee,
           Perkill_Prize: req.body.Perkill_Prize,
+          Match_Status: "Scheduled",
           Date_Time: req.body.Date_Time,
         });
         new_tournament.save().then((data) => {
@@ -180,7 +171,7 @@ route.post(
   }
 );
 
-//Update -- Admin Route
+//Update Result -- Admin Route
 route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
   try {
     const tournament_found = await tournamentschema.findById(req.params.id);
@@ -192,11 +183,8 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
       const response = await tournamentschema.findByIdAndUpdate(
         req.params.id,
         {
-          Game_Name: req.body.Game_Name,
-          Total_Players: req.body.Total_Players,
-          Prize_Pool: req.body.Prize_Pool,
           Joined_User: req.body.Joined_User,
-          Is_Finished: true,
+          Match_Status: "Completed",
         },
         { new: true, runValidators: true }
       );
@@ -205,7 +193,7 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
       const percentToGet = 5;
       const Total_earning =
         response.Joined_User.length *
-        (response.EntryFee - parseInt(response.Prize_Pool));
+        (response.EntryFee - parseInt(response.Perkill_Prize));
       const Amount_to_MinusFromEarning = (percentToGet / 100) * Total_earning;
       const Guild_Amount = Total_earning - Amount_to_MinusFromEarning;
 
@@ -240,7 +228,7 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
           Player.UserId,
           {
             $inc: {
-              Wallet_Coins: Player.Kills * parseInt(response.Prize_Pool),
+              Wallet_Coins: Player.Kills * parseInt(response.Perkill_Prize),
             },
           },
           { new: true }
@@ -250,9 +238,9 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
           Transaction_Id: response._id, // Match Id
           Message:
             "Added For " +
-            Player.Kills * parseInt(response.Prize_Pool) +
+            Player.Kills * parseInt(response.Perkill_Prize) +
             ` Kills in ${response.Game_Name} Match`,
-          Amount: Player.Kills * parseInt(response.Prize_Pool),
+          Amount: Player.Kills * parseInt(response.Perkill_Prize),
           Type: true,
           Date: Date.now(),
         });
@@ -265,6 +253,64 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
     res.status(500).send(error.message);
   }
 });
+//Update Room Details
+route.put("/UpdateRoom_Details/:id", Get_User_id, async (req, res) => {
+  try {
+    const tournament_found = await tournamentschema.findById(req.params.id);
+    if (!tournament_found) {
+      return res.status(404).send("Not Found");
+    } else if (tournament_found.UserId.toString() !== req.user.id.toString()) {
+      return res.status(500).send("Not Allowed");
+    } else {
+      await tournamentschema.findByIdAndUpdate(
+        req.params.id,
+        {
+          RoomDetails: req.body,
+          Match_Status: "Started",
+        },
+        { new: true, runValidators: true }
+      );
+      return res.send("Room Details Updated Sucessfully");
+    }
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send(error.message);
+  }
+});
+
+route.get(
+  "/Fetch_Match_Room_Details/:Matchid",
+  Get_User_id,
+  async (req, res) => {
+    try {
+      const match = await tournamentschema.findById(req.params.Matchid);
+      if (!match) {
+        return res.status(404).send("Not Found");
+      } else {
+        const isJoined = match.Joined_User.find(
+          (user) => user.UserId.toString() === req.user.id.toString()
+        );
+        if (isJoined) {
+          if (match.Match_Status !== "Scheduled") {
+            res.status(200).json({
+              Sucess: true,
+              RoomId: match.RoomDetails.Name,
+              RoomPass: match.RoomDetails.Password,
+            });
+          } else {
+            res.status(200).json({
+              Sucess: false,
+            });
+          }
+        } else {
+          res.status(500).send("You Have Not Joined This Match Yet");
+        }
+      }
+    } catch (error) {
+      res.status(500).send(error.message);
+    }
+  }
+);
 
 // Delete-- Admin Route
 route.delete("/Deletetournament/:id", Get_User_id, async (req, res) => {

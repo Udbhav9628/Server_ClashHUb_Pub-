@@ -8,7 +8,7 @@ const { body, validationResult } = require("express-validator");
 //Read
 route.get("/fetchallGuild", Get_User_id, async (req, res) => {
   try {
-    const Data = await Guild_Schema.find();
+    const Data = await Guild_Schema.find({ OwnerId: { $ne: req.user.id } });
     res.send(Data);
   } catch (error) {
     res.status(500).send(error.message);
@@ -92,7 +92,6 @@ route.post(
 route.put("/Join_Guild/:id", Get_User_id, async (req, res) => {
   try {
     const GuildFollower = await Guild_Schema.findById(req.params.id);
-    console.log(GuildFollower);
     if (!GuildFollower) {
       return res.status(404).send("GuildFollower Not Found");
     } else {

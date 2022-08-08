@@ -14,8 +14,6 @@ const {
   Guild_Matches_Api_Feature,
 } = require("../utils/ApiFeature");
 
-// const Errror_Handler = require("../utils/errorhandler");
-
 // fetch all tournaments
 route.get("/fetchalltournament", Get_User_id, async (req, res) => {
   try {
@@ -72,49 +70,67 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
         (user) => user.UserId.toString() === req.user.id.toString()
       );
       if (isJoined) {
-        return res.status(200).send("You Have already Joined");
+        return res
+          .status(200)
+          .json({ Sucess: false, Msg: "You Have already Joined" });
       } else {
-        const User = await UserModal.findById(req.user.id);
-        if (User) {
-          let New_Amount = User.Wallet_Coins - req.body.Amount_to_be_paid;
-          if (
-            New_Amount >= 0 &&
-            match.Joined_User.length < match.Total_Players
-          ) {
-            const User_Details = {
-              UserId: req.user.id,
-              UserName: req.user.Name,
-              InGameName: req.body.InGameName,
-            };
-            match.Joined_User.push(User_Details);
-            await match.save();
-            await UserModal.findByIdAndUpdate(
-              req.user.id,
-              {
-                Wallet_Coins: New_Amount,
-              },
-              { new: true }
-            );
-            const New_Transaction = new TransactionModal({
-              User: req.user.id,
-              Transaction_Id: match._id, // Match Id
-              Message:
-                `Deducted ${req.body.Amount_to_be_paid} For Joining` +
-                ` ${match.Game_Name}`,
-              Amount: req.body.Amount_to_be_paid,
-              Type: false, //means deducted
-              Date: Date.now(),
-            });
-            await New_Transaction.save();
-            //Join User will be saved after wallet ballance updated - but one problem what if wallet ballance updated but error occured while performing match.save() function
-            return res
-              .status(200)
-              .send("Wallet Updated , Match Joined Successfully");
-          } else {
-            res.status(600).send("Low Balance, or slots full");
-          }
+        if (match.Joined_User.length === match.Total_Players) {
+          return res.status(200).json({ Sucess: false, Msg: "Slots Full" });
         } else {
-          res.status(500).send("User Not Found");
+          const date = new Date(match.Date_Time);
+          const milliseconds = date.getTime();
+          if (Date.now() >= milliseconds) {
+            return res.status(200).json({
+              Sucess: false,
+              Msg: "Can't Join, Match Started Allready",
+            });
+          }
+          const User = await UserModal.findById(req.user.id);
+          if (User) {
+            let New_Amount = User.Wallet_Coins - req.body.Amount_to_be_paid;
+            if (
+              New_Amount >= 0 &&
+              match.Joined_User.length < match.Total_Players
+            ) {
+              const User_Details = {
+                UserId: req.user.id,
+                UserName: req.user.Name,
+                InGameName: req.body.InGameName,
+              };
+              match.Joined_User.push(User_Details);
+              await match.save();
+              await UserModal.findByIdAndUpdate(
+                req.user.id,
+                {
+                  Wallet_Coins: New_Amount,
+                },
+                { new: true }
+              );
+              const New_Transaction = new TransactionModal({
+                User: req.user.id,
+                Transaction_Id: match._id, // Match Id
+                Message:
+                  `Deducted ${req.body.Amount_to_be_paid} For Joining` +
+                  ` ${match.Game_Name}`,
+                Amount: req.body.Amount_to_be_paid,
+                Type: false, //means deducted
+                Date: Date.now(),
+              });
+              await New_Transaction.save();
+              //Join User will be saved after wallet ballance updated - but one problem what if wallet ballance updated but error occured while performing match.save() function
+              return res.status(200).json({
+                Sucess: true,
+                Msg: "Wallet Updated , Match Joined Successfully",
+              });
+            } else {
+              return res.status(200).json({
+                Sucess: false,
+                Msg: "Low Balance, Add Some Coins First",
+              });
+            }
+          } else {
+            res.status(500).send("User Not Found");
+          }
         }
       }
     }

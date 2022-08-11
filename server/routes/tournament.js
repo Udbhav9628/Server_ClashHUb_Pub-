@@ -231,7 +231,7 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
           Message:
             "Added For " +
             response.Joined_User.length +
-            ` Players in ${response.Game_Name} Match`,
+            ` Players in ${response.Game_Name}`,
           Amount: Guild_Amount,
           Type: true,
           Date: Date.now(),
@@ -253,15 +253,46 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
           User: Player.UserId,
           Transaction_Id: response._id, // Match Id
           Message:
-            "Added For " +
-            Player.Kills * parseInt(response.Perkill_Prize) +
-            ` Kills in ${response.Game_Name} Match`,
+            "Added For " + Player.Kills + ` Kills in ${response.Game_Name}`,
           Amount: Player.Kills * parseInt(response.Perkill_Prize),
           Type: true,
           Date: Date.now(),
         });
         await New_Transaction.save();
       });
+
+      //Testing
+      // let playerCacheId = [];
+      // response.Joined_User.forEach((Player) => {
+      //   playerCacheId.push(Player);
+      // });
+      // await Promise.all(
+      //   playerCacheId.map((Player) => {
+      //    await UserModal.findByIdAndUpdate(
+      //       Player.UserId,
+      //       {
+      //         $inc: {
+      //           Wallet_Coins: Player.Kills * parseInt(response.Perkill_Prize),
+      //         },
+      //       },
+      //       { new: true }
+      //     );
+      //     console.log("in promise all");
+      //     const New_Transaction = new TransactionModal({
+      //       User: Player.UserId,
+      //       Transaction_Id: response._id, // Match Id
+      //       Message:
+      //         "Added For " +
+      //         Player.Kills +
+      //         ` Kills in ${response.Game_Name} Match`,
+      //       Amount: Player.Kills * parseInt(response.Perkill_Prize),
+      //       Type: true,
+      //       Date: Date.now(),
+      //     });
+      //     New_Transaction.save();
+      //   })
+      // );
+      //Testing
       return res.send("Result Updated Sucessfully");
     }
   } catch (error) {
@@ -278,6 +309,13 @@ route.put("/UpdateRoom_Details/:id", Get_User_id, async (req, res) => {
     } else if (tournament_found.UserId.toString() !== req.user.id.toString()) {
       return res.status(500).send("Not Allowed");
     } else {
+      const date = new Date(tournament_found.Date_Time);
+      const milliseconds = date.getTime();
+      if (Date.now() + 600000 >= milliseconds) {
+        return res.send(
+          "OH HO! You Are Late, You Can Enter Room Details till 10 Min Before Match Only"
+        );
+      }
       await tournamentschema.findByIdAndUpdate(
         req.params.id,
         {

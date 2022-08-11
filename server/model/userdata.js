@@ -26,7 +26,7 @@ const userdata_schema = new mongoose.Schema({
   },
   Wallet_Coins: {
     type: Number,
-    default: 0,
+    default: 1000,
     min: [0, "Coins Can be atleast 0"],
     max: [10000, "You Can't add More then 1000 coins"],
   },

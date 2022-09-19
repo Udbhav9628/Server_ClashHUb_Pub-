@@ -33,15 +33,17 @@ route.post(
 
       let Newuser = await userschema.findOne({ User_Uid: uid });
       if (Newuser) {
-        res.status(200).send("User Existed You Can Login Now");
-        return;
+        return res.status(200).send({
+          Registration_Fail: true,
+          Message: "Allready Registered, You Can Login",
+        });
       }
       const isUserNameExist = await userschema.findOne({
         UserName: req.body.UserName,
       });
       if (isUserNameExist) {
-        console.log("isUserNameExist");
         return res.status(200).send({
+          Registration_Fail: true,
           Message: "Registeration Failed , UserName Existed , Choose Another",
         });
       } else {
@@ -62,6 +64,7 @@ route.post(
         return res.status(200).json({
           id: NewUser._id,
           User: NewUser.Name,
+          UserName: NewUser.UserName,
           Joined_Date: NewUser.Date,
           Wallet: NewUser.Wallet_Coins,
           User_Uid: NewUser.User_Uid,
@@ -109,15 +112,17 @@ route.put("/Login", async (req, res) => {
       return res.status(200).json({
         id: user._id,
         User: user.Name,
+        UserName: user.UserName,
         Joined_Date: user.Date,
         User_Uid: user.User_Uid,
         Wallet: user.Wallet_Coins,
         Auth_Token,
       });
     } else {
-      return res
-        .status(500)
-        .send("Look like you don't have account, Create Your account first");
+      return res.status(200).send({
+        Login_Fail: true,
+        Message: "Register First Then Login",
+      });
     }
   } catch (error) {
     console.log(error.message);

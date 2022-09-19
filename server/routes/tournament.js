@@ -205,13 +205,11 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
         { new: true, runValidators: true }
       );
 
-      //10 is match entry fee To Do later
-      const percentToGet = 5;
+      //Club Earning
       const Total_earning =
         response.Joined_User.length *
         (response.EntryFee - parseInt(response.Perkill_Prize));
-      const Amount_to_MinusFromEarning = (percentToGet / 100) * Total_earning;
-      const Guild_Amount = Total_earning - Amount_to_MinusFromEarning;
+      const Guild_Amount = Total_earning;
 
       if (Guild_Amount > 0) {
         await UserModal.findByIdAndUpdate(

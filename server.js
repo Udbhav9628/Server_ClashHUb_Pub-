@@ -7,6 +7,7 @@ const connectDB = require("./server/database/database_connection");
 const cors = require("cors");
 const error = require("./server/Middleware/error");
 const bodyParser = require("body-parser");
+const http = require("http");
 
 //Handling uncaught Exception
 //***To Do **/ 1:21 min in video
@@ -36,7 +37,8 @@ app.use("/", require("./server/routes/Payment"));
 app.use("/", require("./server/routes/Notification"));
 app.use("/", require("./server/routes/Withdrawls"));
 
-const server = app.listen(port, () => {
+const http_server = http.createServer(app);
+const server = http_server.listen(port, () => {
   console.log("The server is running at port 8000");
 });
 
@@ -48,3 +50,5 @@ process.on("unhandledRejection", (err) => {
     process.exit(1);
   });
 });
+
+module.exports = app;

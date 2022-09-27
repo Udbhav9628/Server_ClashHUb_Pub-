@@ -89,7 +89,7 @@ class Guild_Matches_Api_Feature {
   constructor(query, queryStr, userid) {
     this.Query = query; //tournamentschema
     this.QueryStr = queryStr; //Secudled , Upcomming, or Finished
-    this.User_id = userid; //req.params.id
+    this.User_id = userid; //Guild id
   }
 
   async Filter() {

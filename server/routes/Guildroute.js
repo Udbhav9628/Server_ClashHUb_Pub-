@@ -116,4 +116,18 @@ route.put("/Join_Guild/:id", Get_User_id, async (req, res) => {
   }
 });
 
+//Geting Specific Club Details by id
+route.get("/getSpecificClubDetails/:id", async (req, res) => {
+  try {
+    let Club = await Guild_Schema.findById(req.params.id);
+    if (!Club) {
+      return res.status(500).send("Club Not Exist May be");
+    } else {
+      return res.status(200).send(Club);
+    }
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
 module.exports = route;

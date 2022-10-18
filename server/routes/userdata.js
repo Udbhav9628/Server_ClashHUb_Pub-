@@ -13,11 +13,7 @@ dotenv.config({ path: path.join(__dirname, "config.env") });
 //Create User
 route.post(
   "/Register",
-  [
-    body("Name").isLength({ min: 3 }),
-    body("UserName").isLength({ min: 3 }),
-    body("Phone_No").isLength({ min: 10 }),
-  ],
+  [body("Name").isLength({ min: 3 }), body("UserName").isLength({ min: 3 })],
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -49,8 +45,9 @@ route.post(
       } else {
         const user = new userschema({
           Name: req.body.Name,
+          Email: req.body.Email,
           UserName: req.body.UserName,
-          Phone_No: req.body.Phone_No,
+          PhotoUrl: req.body.PhotoUrl,
           FCMToken: req.body.FCMToken,
           User_Uid: uid,
         });
@@ -65,10 +62,8 @@ route.post(
           id: NewUser._id,
           User: NewUser.Name,
           UserName: NewUser.UserName,
+          PhotoUrl: NewUser.PhotoUrl,
           Joined_Date: NewUser.Date,
-          Wallet: NewUser.Wallet_Coins,
-          User_Uid: NewUser.User_Uid,
-          Role: NewUser.Role,
           Auth_Token,
         });
         // const Fire = await getAuth().createUser({
@@ -113,8 +108,8 @@ route.put("/Login", async (req, res) => {
         id: user._id,
         User: user.Name,
         UserName: user.UserName,
+        PhotoUrl: user.PhotoUrl,
         Joined_Date: user.Date,
-        User_Uid: user.User_Uid,
         Wallet: user.Wallet_Coins,
         Auth_Token,
       });
@@ -151,9 +146,12 @@ route.get("/getSpecificUserDetails/:id", async (req, res) => {
     if (!user) {
       return res.status(500).send("User Not Exist May be");
     } else {
-      return res
-        .status(200)
-        .json({ Name: user.Name, Joined: user.Date, UserName: user.UserName });
+      return res.status(200).json({
+        Name: user.Name,
+        Joined: user.Date,
+        UserName: user.UserName,
+        PhotoUrl: user.PhotoUrl,
+      });
     }
   } catch (error) {
     console.log(error.message);

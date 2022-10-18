@@ -298,6 +298,7 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
     res.status(500).send(error.message);
   }
 });
+
 //Update Room Details
 route.put("/UpdateRoom_Details/:id", Get_User_id, async (req, res) => {
   try {
@@ -369,7 +370,7 @@ route.delete("/Deletetournament/:id", Get_User_id, async (req, res) => {
   try {
     const tournament_found = await tournamentschema.findById(req.params.id);
     if (!tournament_found) {
-      return res.status(404).send("Not allowed");
+      return res.status(404).send("Not found");
     } else if (tournament_found.User.toString() !== req.user.id.toString()) {
       //objectid is uhi not present just unhi that's why tostring is coverting it into string
       return res.status(200).send("Not Allowed");

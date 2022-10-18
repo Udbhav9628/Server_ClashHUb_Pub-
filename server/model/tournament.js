@@ -57,8 +57,8 @@ const tournament_schema = new mongoose.Schema({
       },
       Kills: {
         type: Number,
-        min: [0, "Kills Must Be at Least 20"],
-        max: [20, "Kills Can Be at Max 20"],
+        min: [0, "Kills Must Be at Least 0"],
+        max: [100, "Kills Can Be at Max 100"],
         default: null,
       },
     },
@@ -81,6 +81,11 @@ const tournament_schema = new mongoose.Schema({
       default: "null",
       trim: true,
     },
+  },
+  EntryFee_Refunded: {
+    type: Boolean,
+    required: true,
+    default: false,
   },
   Date_Time: {
     type: Date,

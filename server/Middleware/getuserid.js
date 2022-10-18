@@ -7,7 +7,7 @@ dotenv.config({ path: path.join(__dirname, "config.env") });
 const Get_User_id = (req, res, next) => {
   const Token = req.header("authToken");
   if (!Token) {
-    res.status(401).send("Plz Provide token in header named authToken");
+    res.status(401).send("You Can,t access this resource");
   }
   try {
     const data = jwt.verify(Token, process.env.JWTSCREAT);

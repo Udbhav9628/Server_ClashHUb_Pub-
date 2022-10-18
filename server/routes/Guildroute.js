@@ -70,7 +70,7 @@ route.post(
           GuildID: req.body.GuildID,
         });
         if (Guild) {
-          return res.status(501).send("ID already Taken, Chose Another");
+          return res.status(501).send("Club ID already Taken, Chose Another");
         } else {
           const new_Guild = new Guild_Schema({
             OwnerId: req.user.id,

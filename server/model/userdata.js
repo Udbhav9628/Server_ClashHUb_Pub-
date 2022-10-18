@@ -6,14 +6,19 @@ const userdata_schema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  Email: {
+    type: String,
+    required: true,
+    trim: true,
+  },
   UserName: {
     type: String,
     required: true,
     trim: true,
-    // unique: true, -- see what is this
+    unique: true,
   },
-  Phone_No: {
-    type: Number,
+  PhotoUrl: {
+    type: String,
     required: true,
   },
   FCMToken: {
@@ -38,12 +43,6 @@ const userdata_schema = new mongoose.Schema({
   Join_Date: {
     type: Date,
     default: Date.now(),
-  },
-  Role: {
-    type: String,
-    default: "user",
-    //select:false -- Need to do later refer project video
-    //Trim -- Need to do later refer project video
   },
 });
 

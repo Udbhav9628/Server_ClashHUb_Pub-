@@ -13,7 +13,7 @@ dotenv.config({ path: path.join(__dirname, "config.env") });
 //Create User
 route.post(
   "/Register",
-  [body("Name").isLength({ min: 3 }), body("UserName").isLength({ min: 3 })],
+  [body("Name").isLength({ min: 2 }), body("UserName").isLength({ min: 3 })],
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

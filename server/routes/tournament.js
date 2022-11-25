@@ -17,12 +17,10 @@ const {
 // fetch all tournaments
 route.get("/fetchalltournament", Get_User_id, async (req, res) => {
   try {
-    const ResultPerPage = 2;
     const Data = await new Api_Feature(
       tournamentschema,
       req.query,
-      req.user.id,
-      ResultPerPage
+      req.user.id
     ).Filter();
     res.send({ Data });
   } catch (error) {
@@ -38,7 +36,7 @@ route.get("/GetJoinedMatches", Get_User_id, async (req, res) => {
       req.query,
       req.user.id
     ).Filter();
-    res.send(Data);
+    res.status(200).send(Data);
   } catch (error) {
     res.status(500).send(error.message);
   }
@@ -52,7 +50,7 @@ route.get("/getGuildtournaments/:id", Get_User_id, async (req, res) => {
       req.query,
       req.params.id
     ).Filter();
-    res.send({ Data });
+    res.status(200).send({ Data });
   } catch (error) {
     res.status(500).send(error.message);
   }

@@ -4,19 +4,6 @@ class Api_Feature {
     this.QueryStr = queryStr; //Pubg or Freefire
     this.User_id = userid; //Pubg or Free
   }
-  async search() {
-    const Keyword = this.QueryStr.Keyword //dont confuse keyword is nothing
-      ? {
-          Game_Name: {
-            $regex: this.QueryStr.Keyword,
-            $options: "i",
-          },
-        }
-      : {};
-
-    this.Product = await this.Query.find({ ...Keyword });
-    return this.Product;
-  }
 
   async Filter() {
     const query = this.QueryStr.Game_Name
@@ -31,9 +18,17 @@ class Api_Feature {
           UserId: { $ne: this.User_id },
           Date_Time: { $gt: Date.now() },
         };
-    this.Product = await this.Query.find({ ...query }).sort({
-      Date_Time: 1,
-    });
+
+    const Result_Per_Page = 10;
+    const Current_Page = Number(this.QueryStr.Page) || 1;
+    const Skip = Result_Per_Page * (Current_Page - 1);
+
+    this.Product = await this.Query.find({ ...query })
+      .sort({
+        Date_Time: 1,
+      })
+      .limit(Result_Per_Page)
+      .skip(Skip);
     return this.Product;
   }
 }
@@ -57,9 +52,18 @@ class MyMatches_Api_Feature {
 
       case "Ongoing":
         query = {
-          "Joined_User.UserId": this.User_id,
-          Date_Time: { $lt: Date.now() },
-          Match_Status: "Started",
+          $and: [
+            {
+              "Joined_User.UserId": this.User_id,
+              Date_Time: { $gt: Date.now() - 14400000 },
+              Match_Status: "Started",
+            },
+            {
+              "Joined_User.UserId": this.User_id,
+              Date_Time: { $lt: Date.now() },
+              Match_Status: "Started",
+            },
+          ],
         };
         break;
 
@@ -72,15 +76,36 @@ class MyMatches_Api_Feature {
 
       case "Cancelled":
         query = {
-          "Joined_User.UserId": this.User_id,
-          Date_Time: { $lt: Date.now() },
-          Match_Status: "Scheduled",
+          $or: [
+            {
+              "Joined_User.UserId": this.User_id,
+              Date_Time: { $lt: Date.now() },
+              Match_Status: "Scheduled",
+            },
+            {
+              "Joined_User.UserId": this.User_id,
+              Date_Time: { $lt: Date.now() - 14400000 },
+              Match_Status: "Started",
+            },
+          ],
         };
         break;
+      default:
+        query = {
+          "Joined_User.UserId": this.User_id,
+        };
     }
-    this.Product = await this.Query.find({ ...query }).sort({
-      Date_Time: 1,
-    });
+
+    const Result_Per_Page = 10;
+    const Current_Page = Number(this.QueryStr.Page) || 1;
+    const Skip = Result_Per_Page * (Current_Page - 1);
+
+    this.Product = await this.Query.find({ ...query })
+      .sort({
+        Date_Time: 1,
+      })
+      .limit(Result_Per_Page)
+      .skip(Skip);
     return this.Product;
   }
 }
@@ -99,17 +124,24 @@ class Guild_Matches_Api_Feature {
         query = {
           GuildId: this.User_id,
           Date_Time: { $gt: Date.now() },
-          // Match_Status: "Scheduled",
         };
         break;
       case "Ongoing":
         query = {
-          GuildId: this.User_id,
-          Date_Time: { $lt: Date.now() },
-          Match_Status: "Started",
+          $and: [
+            {
+              GuildId: this.User_id,
+              Date_Time: { $gt: Date.now() - 14400000 },
+              Match_Status: "Started",
+            },
+            {
+              GuildId: this.User_id,
+              Date_Time: { $lt: Date.now() },
+              Match_Status: "Started",
+            },
+          ],
         };
         break;
-
       case "Resultant":
         query = {
           GuildId: this.User_id,
@@ -119,15 +151,36 @@ class Guild_Matches_Api_Feature {
 
       case "Cancelled":
         query = {
-          GuildId: this.User_id,
-          Date_Time: { $lt: Date.now() },
-          Match_Status: "Scheduled",
+          $or: [
+            {
+              GuildId: this.User_id,
+              Date_Time: { $lt: Date.now() },
+              Match_Status: "Scheduled",
+            },
+            {
+              GuildId: this.User_id,
+              Date_Time: { $lt: Date.now() - 14400000 },
+              Match_Status: "Started",
+            },
+          ],
         };
         break;
+      default:
+        query = {
+          GuildId: this.User_id,
+        };
     }
-    this.Product = await this.Query.find({ ...query }).sort({
-      Date_Time: 1,
-    });
+
+    const Result_Per_Page = 10;
+    const Current_Page = Number(this.QueryStr.Page) || 1;
+    const Skip = Result_Per_Page * (Current_Page - 1);
+
+    this.Product = await this.Query.find({ ...query })
+      .sort({
+        Date_Time: 1,
+      })
+      .limit(Result_Per_Page)
+      .skip(Skip);
     return this.Product;
   }
 }

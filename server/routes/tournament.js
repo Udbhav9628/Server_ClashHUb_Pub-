@@ -76,8 +76,8 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
           return res.status(200).json({ Sucess: false, Msg: "Slots Full" });
         } else {
           const date = new Date(match.Date_Time);
-          const milliseconds = date.getTime();
-          if (Date.now() >= milliseconds) {
+          const Match_Time = date.getTime();
+          if (Date.now() >= Match_Time) {
             return res.status(200).json({
               Sucess: false,
               Msg: "Can't Join, Match Started Allready",
@@ -194,6 +194,21 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
     } else if (tournament_found.UserId.toString() !== req.user.id.toString()) {
       return res.status(500).send("Not Allowed");
     } else {
+      const date = new Date(tournament_found.Date_Time);
+      const MatchTime_In_MS = date.getTime();
+      const now = new Date().getTime();
+      const Time_Gap = now - MatchTime_In_MS;
+      if (
+        Time_Gap > 14400000 &&
+        tournament_found.Match_Status === "Started" &&
+        Time_Gap > 1 //Means Match Started
+      ) {
+        return res
+          .status(200)
+          .send(
+            "OH HO! Match Has Been Cancelled Because You Did Not Publish Result within Time Limit, Time Limit is Within 4 min of Match Started"
+          );
+      }
       const response = await tournamentschema.findByIdAndUpdate(
         req.params.id,
         {
@@ -289,7 +304,7 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
       //   })
       // );
       //Testing
-      return res.send("Result Updated Sucessfully");
+      return res.status(200).send("Result Published Sucessfully");
     }
   } catch (error) {
     console.log(error.message);
@@ -309,9 +324,11 @@ route.put("/UpdateRoom_Details/:id", Get_User_id, async (req, res) => {
       const date = new Date(tournament_found.Date_Time);
       const milliseconds = date.getTime();
       if (Date.now() + 600000 >= milliseconds) {
-        return res.send(
-          "OH HO! You Are Late, You Can Enter Room Details till 10 Min Before Match Only"
-        );
+        return res
+          .status(200)
+          .send(
+            "OH HO! You Are Late, You Can Enter Room Details till 10 Min Before Match Start Time"
+          );
       }
       await tournamentschema.findByIdAndUpdate(
         req.params.id,
@@ -321,7 +338,7 @@ route.put("/UpdateRoom_Details/:id", Get_User_id, async (req, res) => {
         },
         { new: true, runValidators: true }
       );
-      return res.send("Room Details Updated Sucessfully");
+      return res.status(200).send("Room Details Updated Sucessfully");
     }
   } catch (error) {
     console.log(error.message);

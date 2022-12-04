@@ -2,14 +2,13 @@ const express = require("express");
 const route = express.Router();
 const Guild_Schema = require("../model/Guild");
 const Get_User_id = require("../Middleware/getuserid");
-const Checkisadmin = require("../Middleware/Isadmin");
 const { body, validationResult } = require("express-validator");
 
 //Read
 route.get("/fetchallGuild", Get_User_id, async (req, res) => {
   try {
     const Data = await Guild_Schema.find({ OwnerId: { $ne: req.user.id } });
-    res.send(Data);
+    return res.status(200).send(Data);
   } catch (error) {
     res.status(500).send(error.message);
   }
@@ -83,7 +82,6 @@ route.post(
         }
       }
     } catch (error) {
-      console.log(error.message);
       res.status(505).send(error.message);
     }
   }
@@ -111,7 +109,6 @@ route.put("/Join_Guild/:id", Get_User_id, async (req, res) => {
       }
     }
   } catch (error) {
-    console.log(error.message);
     res.status(500).send(error.message);
   }
 });

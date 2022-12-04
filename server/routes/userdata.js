@@ -22,7 +22,7 @@ route.post(
     try {
       const Firebase_Token = req.header("Firebase_Auth_Token");
       if (!Firebase_Token) {
-        return res.status(404).send("No Firebase Auth Token");
+        return res.status(404).send("Something went wrong");
       }
       const decodedToken = await getAuth().verifyIdToken(Firebase_Token);
       const uid = decodedToken.uid;
@@ -57,7 +57,6 @@ route.post(
           Name: NewUser.Name,
         };
         const Auth_Token = jwt.sign(PayLoad, process.env.JWTSCREAT);
-        console.log("in main");
         return res.status(200).json({
           id: NewUser._id,
           User: NewUser.Name,
@@ -66,16 +65,9 @@ route.post(
           Joined_Date: NewUser.Date,
           Auth_Token,
         });
-        // const Fire = await getAuth().createUser({
-        //   uid: NewUser._id.toString(),
-        //   // phoneNumber: `+${NewUser.Phone_No}`,
-        //   displayName: NewUser.Name,
-        // });
-        // console.log(Fire);
       }
     } catch (error) {
       res.status(500).send(error.message);
-      console.log(error.message);
     }
   }
 );
@@ -86,7 +78,7 @@ route.put("/Login", async (req, res) => {
     //FireBase
     const Firebase_Token = req.header("Firebase_Auth_Token");
     if (!Firebase_Token) {
-      return res.status(404).send("No Firebase Auth Token");
+      return res.status(404).send("something Went wrong");
     }
 
     const decodedToken = await getAuth().verifyIdToken(Firebase_Token);
@@ -120,7 +112,6 @@ route.put("/Login", async (req, res) => {
       });
     }
   } catch (error) {
-    console.log(error.message);
     res.status(500).send(error.message);
   }
 });
@@ -154,7 +145,6 @@ route.get("/getSpecificUserDetails/:id", async (req, res) => {
       });
     }
   } catch (error) {
-    console.log(error.message);
     res.status(500).send(error.message);
   }
 });

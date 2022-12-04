@@ -13,6 +13,7 @@ const {
   MyMatches_Api_Feature,
   Guild_Matches_Api_Feature,
 } = require("../utils/ApiFeature");
+const mongoose = require("mongoose");
 
 // fetch all tournaments
 route.get("/fetchalltournament", Get_User_id, async (req, res) => {
@@ -57,8 +58,10 @@ route.get("/getGuildtournaments/:id", Get_User_id, async (req, res) => {
 });
 
 //Join Match Route - put Request
-//Two await in single route check if is ok
 route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
+  const session = await mongoose.startSession();
+
+  session.startTransaction();
   try {
     const match = await tournamentschema.findById(req.params.id);
     if (!match) {
@@ -96,13 +99,15 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
                 InGameName: req.body.InGameName,
               };
               match.Joined_User.push(User_Details);
-              await match.save();
+              await match.save({ session });
               await UserModal.findByIdAndUpdate(
                 req.user.id,
                 {
-                  Wallet_Coins: New_Amount,
+                  $inc: {
+                    Wallet_Coins: -parseInt(req.body.Amount_to_be_paid),
+                  },
                 },
-                { new: true }
+                { new: true, runValidators: true, session }
               );
               const New_Transaction = new TransactionModal({
                 User: req.user.id,
@@ -114,11 +119,11 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
                 Type: false, //means deducted
                 Date: Date.now(),
               });
-              await New_Transaction.save();
-              //Join User will be saved after wallet ballance updated - but one problem what if wallet ballance updated but error occured while performing match.save() function
+              await New_Transaction.save({ session });
+              await session.commitTransaction();
               return res.status(200).json({
                 Sucess: true,
-                Msg: "Wallet Updated , Match Joined Successfully",
+                Msg: "Entry Fee Deducted, Match Joined Successfully",
               });
             } else {
               return res.status(200).json({
@@ -127,13 +132,16 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
               });
             }
           } else {
-            res.status(500).send("User Not Found");
+            res.status(404).send("Something Went Wrong");
           }
         }
       }
     }
   } catch (error) {
-    res.status(500).send(error.message);
+    await session.abortTransaction();
+    return res.status(500).send(error.message);
+  } finally {
+    session.endSession();
   }
 });
 
@@ -176,17 +184,21 @@ route.post(
           Date_Time: req.body.Date_Time,
         });
         new_tournament.save().then((data) => {
-          res.json({ data });
+          return res.status(200).json({ data });
         });
       }
     } catch (error) {
-      res.status(500).send(error.message);
+      return res.status(500).send(error.message);
     }
   }
 );
 
 //Update Result -- Admin Route
+//Check
 route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
+  const session = await mongoose.startSession();
+
+  session.startTransaction();
   try {
     const tournament_found = await tournamentschema.findById(req.params.id);
     if (!tournament_found) {
@@ -206,7 +218,7 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
         return res
           .status(200)
           .send(
-            "OH HO! Match Has Been Cancelled Because You Did Not Publish Result within Time Limit, Time Limit is Within 4 min of Match Started"
+            "OH HO! Match Has Been Cancelled Because You Did Not Publish Result within Time Limit, Time Limit is Within 4 Hours of Match Start Time"
           );
       }
       const response = await tournamentschema.findByIdAndUpdate(
@@ -215,9 +227,8 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
           Joined_User: req.body.Joined_User,
           Match_Status: "Completed",
         },
-        { new: true, runValidators: true }
+        { new: true, runValidators: true, session }
       );
-
       //Club Earning
       const Total_earning =
         response.Joined_User.length *
@@ -232,7 +243,7 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
               Club_Wallet_Coins: Guild_Amount,
             },
           },
-          { new: true }
+          { new: true, runValidators: true, session }
         );
 
         const New_Guild_Transaction = new GuildTransaction({
@@ -247,68 +258,40 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
           Type: true,
           Date: Date.now(),
         });
-        await New_Guild_Transaction.save();
+        await New_Guild_Transaction.save({ session });
       }
 
       response.Joined_User.forEach(async (Player) => {
-        await UserModal.findByIdAndUpdate(
-          Player.UserId,
-          {
-            $inc: {
-              Wallet_Coins: Player.Kills * parseInt(response.Perkill_Prize),
+        if (Player.Kills * parseInt(response.Perkill_Prize) > 0) {
+          await UserModal.findByIdAndUpdate(
+            Player.UserId,
+            {
+              $inc: {
+                Wallet_Coins: Player.Kills * parseInt(response.Perkill_Prize),
+              },
             },
-          },
-          { new: true }
-        );
-        const New_Transaction = new TransactionModal({
-          User: Player.UserId,
-          Transaction_Id: response._id, // Match Id
-          Message:
-            "Added For " + Player.Kills + ` Kills in ${response.Game_Name}`,
-          Amount: Player.Kills * parseInt(response.Perkill_Prize),
-          Type: true,
-          Date: Date.now(),
-        });
-        await New_Transaction.save();
+            { new: true, runValidators: true, session }
+          );
+          const New_Transaction = new TransactionModal({
+            User: Player.UserId,
+            Transaction_Id: response._id, // Match Id
+            Message:
+              "Added For " + Player.Kills + ` Kills in ${response.Game_Name}`,
+            Amount: Player.Kills * parseInt(response.Perkill_Prize),
+            Type: true,
+            Date: Date.now(),
+          });
+          await New_Transaction.save({ session });
+        }
       });
-
-      //Testing
-      // let playerCacheId = [];
-      // response.Joined_User.forEach((Player) => {
-      //   playerCacheId.push(Player);
-      // });
-      // await Promise.all(
-      //   playerCacheId.map((Player) => {
-      //    await UserModal.findByIdAndUpdate(
-      //       Player.UserId,
-      //       {
-      //         $inc: {
-      //           Wallet_Coins: Player.Kills * parseInt(response.Perkill_Prize),
-      //         },
-      //       },
-      //       { new: true }
-      //     );
-      //     console.log("in promise all");
-      //     const New_Transaction = new TransactionModal({
-      //       User: Player.UserId,
-      //       Transaction_Id: response._id, // Match Id
-      //       Message:
-      //         "Added For " +
-      //         Player.Kills +
-      //         ` Kills in ${response.Game_Name} Match`,
-      //       Amount: Player.Kills * parseInt(response.Perkill_Prize),
-      //       Type: true,
-      //       Date: Date.now(),
-      //     });
-      //     New_Transaction.save();
-      //   })
-      // );
-      //Testing
-      return res.status(200).send("Result Published Sucessfully");
+      await session.commitTransaction();
+      return res.status(200).send("Result Published");
     }
   } catch (error) {
-    console.log(error.message);
-    res.status(500).send(error.message);
+    await session.abortTransaction();
+    return res.status(500).send(error.message);
+  } finally {
+    session.endSession();
   }
 });
 
@@ -341,7 +324,6 @@ route.put("/UpdateRoom_Details/:id", Get_User_id, async (req, res) => {
       return res.status(200).send("Room Details Updated Sucessfully");
     }
   } catch (error) {
-    console.log(error.message);
     res.status(500).send(error.message);
   }
 });

@@ -21,7 +21,7 @@ connectDB();
 
 const port = process.env.PORT;
 
-app.use(morgan("tiny"));
+app.use(morgan("short"));
 app.use(bodyParser.json());
 app.use(express.json());
 app.use(

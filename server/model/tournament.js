@@ -72,13 +72,19 @@ const tournament_schema = new mongoose.Schema({
     Name: {
       type: String,
       maxlength: 35,
-      default: "null",
+      default: null,
       trim: true,
     },
     Password: {
       type: String,
       maxlength: 15,
-      default: "null",
+      default: null,
+      trim: true,
+    },
+    YT_Video_id: {
+      type: String,
+      maxlength: 50,
+      default: null,
       trim: true,
     },
   },

@@ -23,7 +23,7 @@ route.get("/fetchalltournament", Get_User_id, async (req, res) => {
       req.query,
       req.user.id
     ).Filter();
-    res.send({ Data });
+    return res.send({ Data });
   } catch (error) {
     res.status(500).send(error.message);
   }
@@ -37,7 +37,21 @@ route.get("/GetJoinedMatches", Get_User_id, async (req, res) => {
       req.query,
       req.user.id
     ).Filter();
-    res.status(200).send(Data);
+    return res.status(200).send(Data);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+//Get Matches which have videos only
+route.get("/GetVideosMatches", Get_User_id, async (req, res) => {
+  try {
+    const Data = await tournamentschema
+      .find({ "RoomDetails.YT_Video_id": { $ne: null } })
+      .sort({
+        Date_Time: 1,
+      });
+    return res.status(200).send({ Data });
   } catch (error) {
     res.status(500).send(error.message);
   }
@@ -51,7 +65,7 @@ route.get("/getGuildtournaments/:id", Get_User_id, async (req, res) => {
       req.query,
       req.params.id
     ).Filter();
-    res.status(200).send({ Data });
+    return res.status(200).send({ Data });
   } catch (error) {
     res.status(500).send(error.message);
   }

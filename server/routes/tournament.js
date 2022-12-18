@@ -47,9 +47,12 @@ route.get("/GetJoinedMatches", Get_User_id, async (req, res) => {
 route.get("/GetVideosMatches", Get_User_id, async (req, res) => {
   try {
     const Data = await tournamentschema
-      .find({ "RoomDetails.YT_Video_id": { $ne: null } })
+      .find({
+        "RoomDetails.YT_Video_id": { $ne: null },
+        UserId: { $ne: req.user.id },
+      })
       .sort({
-        Date_Time: 1,
+        Date_Time: -1,
       });
     return res.status(200).send({ Data });
   } catch (error) {
@@ -330,12 +333,48 @@ route.put("/UpdateRoom_Details/:id", Get_User_id, async (req, res) => {
       await tournamentschema.findByIdAndUpdate(
         req.params.id,
         {
-          RoomDetails: req.body,
+          RoomDetails: {
+            Name: req.body.Name,
+            Password: req.body.Password,
+            YT_Video_id: null,
+          },
           Match_Status: "Started",
         },
         { new: true, runValidators: true }
       );
       return res.status(200).send("Room Details Updated Sucessfully");
+    }
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+//Update Video Details
+route.put("/UpdateVideo_Details/:id", Get_User_id, async (req, res) => {
+  try {
+    const tournament_found = await tournamentschema.findById(req.params.id);
+    if (!tournament_found) {
+      return res.status(404).send("Not Found");
+    } else if (tournament_found.UserId.toString() !== req.user.id.toString()) {
+      return res.status(500).send("Not Allowed");
+    } else {
+      if (
+        tournament_found.Match_Status === "Started" &&
+        tournament_found.Date_Time.getTime() > Date.now() - 14400000
+      ) {
+        await tournamentschema.findByIdAndUpdate(
+          req.params.id,
+          {
+            RoomDetails: {
+              YT_Video_id: req.body.YT_Video_id,
+            },
+          },
+          { new: true, runValidators: true }
+        );
+        return res.status(200).send("Shared Sucessfully");
+      } else {
+        return res.status(200).send("Match Cancelled or Not Started Yet");
+      }
     }
   } catch (error) {
     res.status(500).send(error.message);

@@ -188,6 +188,20 @@ route.post(
           Message: "Guild Does not Exist , Create First",
         });
       } else {
+        if (Guild.Followers.length < 250 && Number(req.body.EntryFee) > 25) {
+          return res
+            .status(200)
+            .send(
+              "Club Needs At least 250 Followers To Take Entry Fees More Then Rs 25"
+            );
+        }
+        if (Number(req.body.Perkill_Prize) > Number(req.body.EntryFee)) {
+          return res
+            .status(200)
+            .send(
+              "Per Kill Prize is More Then Entry Fees , It Should be less or Equals to Entry Fee"
+            );
+        }
         const new_tournament = new tournamentschema({
           GuildId: Guild._id,
           UserId: req.user.id,
@@ -201,7 +215,7 @@ route.post(
           Date_Time: req.body.Date_Time,
         });
         new_tournament.save().then((data) => {
-          return res.status(200).json({ data });
+          return res.status(200).send("Match Published Sucessfully");
         });
       }
     } catch (error) {

@@ -35,10 +35,12 @@ const tournament_schema = new mongoose.Schema({
   EntryFee: {
     type: Number,
     required: true,
+    maxlength: 2,
   },
   Perkill_Prize: {
     type: Number,
     required: true,
+    maxlength: 2,
   },
   Joined_User: [
     {
@@ -60,6 +62,11 @@ const tournament_schema = new mongoose.Schema({
         min: [0, "Kills Must Be at Least 0"],
         max: [100, "Kills Can Be at Max 100"],
         default: null,
+      },
+      Is_EntryFee_Refunded: {
+        type: Boolean,
+        required: true,
+        default: false,
       },
     },
   ],
@@ -87,11 +94,6 @@ const tournament_schema = new mongoose.Schema({
       default: null,
       trim: true,
     },
-  },
-  EntryFee_Refunded: {
-    type: Boolean,
-    required: true,
-    default: false,
   },
   Date_Time: {
     type: Date,

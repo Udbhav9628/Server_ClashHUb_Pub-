@@ -67,7 +67,7 @@ route.post(
         });
       }
     } catch (error) {
-      res.status(500).send(error.message);
+      return res.status(500).send("Something Goes Wrong");
     }
   }
 );
@@ -90,10 +90,8 @@ route.put("/Login", async (req, res) => {
     );
     if (user) {
       const PayLoad = {
-        //this is the data will recevive when verify jwt token provided in header - user id
-        //TO Do --Save in Hashed with salt and then reverse engineer it when need to use
-        id: user._id, //Logged User id is saved in authtoken
-        Name: user.Name, //Logged User Name is saved in authtoken   TO Do --Save in Hashed with salt
+        id: user._id,
+        Name: user.Name,
       };
       const Auth_Token = jwt.sign(PayLoad, process.env.JWTSCREAT);
       return res.status(200).json({
@@ -112,7 +110,7 @@ route.put("/Login", async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(500).send(error.message);
+    return res.status(500).send("Something Goes Wrong");
   }
 });
 
@@ -126,12 +124,12 @@ route.get("/getUserDetails", Get_User_id, async (req, res) => {
       return res.status(200).send(user);
     }
   } catch (error) {
-    res.status(500).send(error.message);
+    return res.status(500).send("Something Goes Wrong");
   }
 });
 
 //Geting Specific User Details by id
-route.get("/getSpecificUserDetails/:id", async (req, res) => {
+route.get("/getSpecificUserDetails/:id", Get_User_id, async (req, res) => {
   try {
     let user = await userschema.findById(req.params.id);
     if (!user) {
@@ -145,7 +143,7 @@ route.get("/getSpecificUserDetails/:id", async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(500).send(error.message);
+    return res.status(500).send("Something Goes Wrong");
   }
 });
 

@@ -42,12 +42,14 @@ class MyMatches_Api_Feature {
 
   async Filter() {
     let query;
+    let DateTime;
     switch (this.QueryStr.MatchType) {
       case "Scheduled":
         query = {
           "Joined_User.UserId": this.User_id,
           Date_Time: { $gt: Date.now() },
         };
+        DateTime = 1;
         break;
 
       case "Ongoing":
@@ -65,6 +67,7 @@ class MyMatches_Api_Feature {
             },
           ],
         };
+        DateTime = 1;
         break;
 
       case "Resultant":
@@ -72,6 +75,7 @@ class MyMatches_Api_Feature {
           "Joined_User.UserId": this.User_id,
           Match_Status: "Completed",
         };
+        DateTime = -1;
         break;
 
       case "Cancelled":
@@ -89,11 +93,14 @@ class MyMatches_Api_Feature {
             },
           ],
         };
+        DateTime = -1;
         break;
       default:
         query = {
           "Joined_User.UserId": this.User_id,
         };
+        DateTime = 1;
+        break;
     }
 
     const Result_Per_Page = 10;
@@ -102,7 +109,7 @@ class MyMatches_Api_Feature {
 
     this.Product = await this.Query.find({ ...query })
       .sort({
-        Date_Time: 1,
+        Date_Time: DateTime || 1,
       })
       .limit(Result_Per_Page)
       .skip(Skip);
@@ -119,12 +126,14 @@ class Guild_Matches_Api_Feature {
 
   async Filter() {
     let query;
+    let DateTime;
     switch (this.QueryStr.MatchType) {
       case "Scheduled":
         query = {
           GuildId: this.User_id,
           Date_Time: { $gt: Date.now() },
         };
+        DateTime = 1;
         break;
       case "Ongoing":
         query = {
@@ -141,14 +150,15 @@ class Guild_Matches_Api_Feature {
             },
           ],
         };
+        DateTime = 1;
         break;
       case "Resultant":
         query = {
           GuildId: this.User_id,
           Match_Status: "Completed",
         };
+        DateTime = -1;
         break;
-
       case "Cancelled":
         query = {
           $or: [
@@ -164,11 +174,14 @@ class Guild_Matches_Api_Feature {
             },
           ],
         };
+        DateTime = -1;
         break;
       default:
         query = {
           GuildId: this.User_id,
         };
+        DateTime = 1;
+        break;
     }
 
     const Result_Per_Page = 10;
@@ -177,7 +190,7 @@ class Guild_Matches_Api_Feature {
 
     this.Product = await this.Query.find({ ...query })
       .sort({
-        Date_Time: 1,
+        Date_Time: DateTime || 1,
       })
       .limit(Result_Per_Page)
       .skip(Skip);

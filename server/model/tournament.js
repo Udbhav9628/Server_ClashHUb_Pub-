@@ -2,8 +2,7 @@ const mongoose = require("mongoose");
 
 const tournament_schema = new mongoose.Schema({
   GuildId: {
-    //Associating Notes with user just like foreign key in mysql
-    type: mongoose.Schema.Types.ObjectId, //it will take only object id from req.body which will come from jwt token
+    type: mongoose.Schema.Types.ObjectId,
     ref: "Guild",
     required: true,
   },
@@ -16,16 +15,20 @@ const tournament_schema = new mongoose.Schema({
     type: String,
     required: [true, "Please Enter Game Name"],
     trim: true,
+    enum: ["BGMI", "FreeFire Max", "CODM"],
   },
   GameType: {
     type: String,
     required: true,
+    trim: true,
     enum: ["Solo", "Duo", "Squad"],
   },
   Map: {
     type: String,
     required: [true, "Please Provide Map"],
     trim: true,
+    minlength: 3,
+    maxlength: 30,
   },
   Total_Players: {
     type: Number,
@@ -35,11 +38,13 @@ const tournament_schema = new mongoose.Schema({
   EntryFee: {
     type: Number,
     required: true,
+    min: 0,
     maxlength: 2,
   },
   Perkill_Prize: {
     type: Number,
     required: true,
+    min: 0,
     maxlength: 2,
   },
   Joined_User: [
@@ -52,10 +57,16 @@ const tournament_schema = new mongoose.Schema({
       UserName: {
         type: String,
         required: true,
+        trim: true,
+        minlength: 2,
+        maxlength: 30,
       },
       InGameName: {
         type: String,
         required: true,
+        trim: true,
+        minlength: 2,
+        maxlength: 30,
       },
       Kills: {
         type: Number,
@@ -78,21 +89,25 @@ const tournament_schema = new mongoose.Schema({
   RoomDetails: {
     Name: {
       type: String,
-      maxlength: 35,
       default: null,
       trim: true,
+      minlength: 2,
+      maxlength: 30,
     },
     Password: {
       type: String,
-      maxlength: 15,
       default: null,
       trim: true,
+      minlength: 2,
+      maxlength: 30,
     },
     YT_Video_id: {
       type: String,
-      maxlength: 50,
       default: null,
+      unique: true,
       trim: true,
+      minlength: 2,
+      maxlength: 50,
     },
   },
   Date_Time: {

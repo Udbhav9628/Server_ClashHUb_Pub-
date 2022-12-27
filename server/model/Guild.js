@@ -10,16 +10,22 @@ const Guild_Schema = new mongoose.Schema({
     type: String,
     required: [true, "Please Enter Guild's Name"],
     trim: true,
+    minlength: 2,
+    maxlength: 30,
   },
   GuildID: {
     type: String,
     required: [true, "Please Enter Guild's ID"],
     trim: true,
+    minlength: 2,
+    maxlength: 30,
   },
   GuildDescription: {
     type: String,
     required: [true, "Please Enter Guild's Description"],
     trim: true,
+    minlength: 2,
+    maxlength: 60,
   },
   Followers: [
     {
@@ -32,6 +38,8 @@ const Guild_Schema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true,
+        minlength: 2,
+        maxlength: 30,
       },
     },
   ],

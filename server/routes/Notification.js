@@ -1,6 +1,7 @@
 const express = require("express");
 const route = express.Router();
 const admin = require("firebase-admin");
+const Get_User_id = require("../Middleware/getuserid");
 
 const serviceAccount = require("../../firebase.json");
 
@@ -10,15 +11,14 @@ admin.initializeApp({
 
 const tokens = [];
 
-route.post("/registerToken", (req, res) => {
+route.post("/registerToken", Get_User_id, (req, res) => {
   tokens.push(req.body.token);
-  console.log(tokens);
   return res
     .status(200)
     .json({ message: "Successfully registered FCM Token!" });
 });
 
-route.post("/notifications", async (req, res) => {
+route.post("/notifications", Get_User_id, async (req, res) => {
   try {
     const { title, body, imageUrl } = req.body;
     await admin.messaging().sendMulticast({
@@ -29,9 +29,11 @@ route.post("/notifications", async (req, res) => {
         imageUrl,
       },
     });
-    res.status(200).json({ message: "Successfully sent notifications!" });
+    return res
+      .status(200)
+      .json({ message: "Successfully sent notifications!" });
   } catch (err) {
-    res
+    return res
       .status(err.status || 500)
       .json({ message: err.message || "Something went wrong!" });
   }

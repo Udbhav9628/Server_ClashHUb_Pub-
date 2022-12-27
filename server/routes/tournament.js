@@ -25,7 +25,7 @@ route.get("/fetchalltournament", Get_User_id, async (req, res) => {
     ).Filter();
     return res.send({ Data });
   } catch (error) {
-    res.status(500).send(error.message);
+    return res.status(500).send("Something Goes Wrong");
   }
 });
 
@@ -39,7 +39,7 @@ route.get("/GetJoinedMatches", Get_User_id, async (req, res) => {
     ).Filter();
     return res.status(200).send(Data);
   } catch (error) {
-    res.status(500).send(error.message);
+    return res.status(500).send("Something Goes Wrong");
   }
 });
 
@@ -56,7 +56,7 @@ route.get("/GetVideosMatches", Get_User_id, async (req, res) => {
       });
     return res.status(200).send({ Data });
   } catch (error) {
-    res.status(500).send(error.message);
+    return res.status(500).send("Something Goes Wrong");
   }
 });
 
@@ -70,7 +70,7 @@ route.get("/getGuildtournaments/:id", Get_User_id, async (req, res) => {
     ).Filter();
     return res.status(200).send({ Data });
   } catch (error) {
-    res.status(500).send(error.message);
+    return res.status(500).send("Something Goes Wrong");
   }
 });
 
@@ -156,7 +156,7 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
     }
   } catch (error) {
     await session.abortTransaction();
-    return res.status(500).send(error.message);
+    return res.status(500).send("Something Goes Wrong");
   } finally {
     session.endSession();
   }
@@ -219,7 +219,7 @@ route.post(
         });
       }
     } catch (error) {
-      return res.status(500).send(error.message);
+      return res.status(500).send("Something Goes Wrong");
     }
   }
 );
@@ -320,7 +320,7 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
     }
   } catch (error) {
     await session.abortTransaction();
-    return res.status(500).send(error.message);
+    return res.status(500).send("Something Goes Wrong");
   } finally {
     session.endSession();
   }
@@ -344,22 +344,26 @@ route.put("/UpdateRoom_Details/:id", Get_User_id, async (req, res) => {
             "OH HO! You Are Late, You Can Enter Room Details till 10 Min Before Match Start Time"
           );
       }
-      await tournamentschema.findByIdAndUpdate(
-        req.params.id,
-        {
-          RoomDetails: {
-            Name: req.body.Name,
-            Password: req.body.Password,
-            YT_Video_id: null,
+      if (tournament_found.Match_Status !== "Started") {
+        await tournamentschema.findByIdAndUpdate(
+          req.params.id,
+          {
+            RoomDetails: {
+              Name: req.body.Name,
+              Password: req.body.Password,
+              YT_Video_id: null,
+            },
+            Match_Status: "Started",
           },
-          Match_Status: "Started",
-        },
-        { new: true, runValidators: true }
-      );
-      return res.status(200).send("Room Details Updated Sucessfully");
+          { new: true, runValidators: true }
+        );
+        return res.status(200).send("Room Details Updated Sucessfully");
+      } else {
+        return res.status(200).send("Started Already");
+      }
     }
   } catch (error) {
-    res.status(500).send(error.message);
+    return res.status(500).send("Something Goes Wrong");
   }
 });
 
@@ -376,22 +380,27 @@ route.put("/UpdateVideo_Details/:id", Get_User_id, async (req, res) => {
         tournament_found.Match_Status === "Started" &&
         tournament_found.Date_Time.getTime() > Date.now() - 14400000
       ) {
-        await tournamentschema.findByIdAndUpdate(
-          req.params.id,
-          {
-            RoomDetails: {
-              YT_Video_id: req.body.YT_Video_id,
+        if (tournament_found.RoomDetails.YT_Video_id === null) {
+          req.body;
+          await tournamentschema.findByIdAndUpdate(
+            req.params.id,
+            {
+              RoomDetails: {
+                Name: tournament_found.RoomDetails.Name,
+                Password: tournament_found.RoomDetails.Password,
+                YT_Video_id: req.body.YT_Video_id,
+              },
             },
-          },
-          { new: true, runValidators: true }
-        );
-        return res.status(200).send("Shared Sucessfully");
+            { new: true, runValidators: true }
+          );
+          return res.status(200).send("Shared Sucessfully");
+        }
       } else {
         return res.status(200).send("Match Cancelled or Not Started Yet");
       }
     }
   } catch (error) {
-    res.status(500).send(error.message);
+    return res.status(500).send("Something Goes Wrong");
   }
 });
 
@@ -424,7 +433,7 @@ route.get(
         }
       }
     } catch (error) {
-      res.status(500).send(error.message);
+      return res.status(500).send("Something Goes Wrong");
     }
   }
 );
@@ -436,14 +445,13 @@ route.delete("/Deletetournament/:id", Get_User_id, async (req, res) => {
     if (!tournament_found) {
       return res.status(404).send("Not found");
     } else if (tournament_found.User.toString() !== req.user.id.toString()) {
-      //objectid is uhi not present just unhi that's why tostring is coverting it into string
       return res.status(200).send("Not Allowed");
     } else {
       await tournamentschema.findByIdAndDelete(req.params.id);
-      res.send("Deleted Sucessfully");
+      return res.send("Deleted Sucessfully");
     }
   } catch (error) {
-    res.status(500).send(error.message);
+    return res.status(500).send("Something Goes Wrong");
   }
 });
 

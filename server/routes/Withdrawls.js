@@ -3,6 +3,7 @@ const route = express.Router();
 const Withdrawls = require("../model/Withdrawls");
 const Get_User_id = require("../Middleware/getuserid");
 
+//RazorPayX Payout Route
 // route.post("/createWithdrawls", Get_User_id, async (req, res) => {
 //   try {
 //     const data = {
@@ -47,7 +48,7 @@ const Get_User_id = require("../Middleware/getuserid");
 //     });
 //     console.log(response);
 //   } catch (error) {
-//     res.status(500).send(error.message);
+//     return res.status(500).send("Something Goes Wrong");
 //   }
 // });
 
@@ -77,7 +78,7 @@ route.post("/createWithdrawls", Get_User_id, async (req, res) => {
         );
     }
   } catch (error) {
-    res.status(500).send(error.message);
+    return res.status(500).send("Something Goes Wrong");
   }
 });
 
@@ -91,7 +92,7 @@ route.get("/getPendingWithdrawrequest", Get_User_id, async (req, res) => {
       return res.status(200).send(PendigWithdrawls);
     }
   } catch (error) {
-    return res.status(500).send(error.message);
+    return res.status(500).send("Something Goes Wrong");
   }
 });
 

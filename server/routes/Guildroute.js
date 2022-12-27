@@ -10,7 +10,7 @@ route.get("/fetchallGuild", Get_User_id, async (req, res) => {
     const Data = await Guild_Schema.find({ OwnerId: { $ne: req.user.id } });
     return res.status(200).send(Data);
   } catch (error) {
-    res.status(500).send(error.message);
+    return res.status(500).send("Something Goes Wrong");
   }
 });
 
@@ -31,7 +31,7 @@ route.get("/getUserGuildDetails", Get_User_id, async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(500).send(error.message);
+    return res.status(500).send("Something Goes Wrong");
   }
 });
 
@@ -82,7 +82,7 @@ route.post(
         }
       }
     } catch (error) {
-      res.status(505).send(error.message);
+      return res.status(500).send("Something Goes Wrong");
     }
   }
 );
@@ -109,12 +109,12 @@ route.put("/Join_Guild/:id", Get_User_id, async (req, res) => {
       }
     }
   } catch (error) {
-    res.status(500).send(error.message);
+    return res.status(500).send("Something Goes Wrong");
   }
 });
 
 //Geting Specific Club Details by id
-route.get("/getSpecificClubDetails/:id", async (req, res) => {
+route.get("/getSpecificClubDetails/:id", Get_User_id, async (req, res) => {
   try {
     let Club = await Guild_Schema.findById(req.params.id);
     if (!Club) {
@@ -123,7 +123,7 @@ route.get("/getSpecificClubDetails/:id", async (req, res) => {
       return res.status(200).send(Club);
     }
   } catch (error) {
-    res.status(500).send(error.message);
+    return res.status(500).send("Something Goes Wrong");
   }
 });
 

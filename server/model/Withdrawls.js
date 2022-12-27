@@ -17,7 +17,14 @@ const Withdrawls_schema = new mongoose.Schema({
     trim: true,
     required: true,
     minlength: 2,
-    maxlength: 50,
+    maxlength: 60,
+  },
+  UPI_Id: {
+    type: String,
+    trim: true,
+    required: true,
+    minlength: 2,
+    maxlength: 60,
   },
   Amount: {
     type: Number,
@@ -28,7 +35,7 @@ const Withdrawls_schema = new mongoose.Schema({
   Status: {
     type: String,
     required: true,
-    enum: ["Pending", "Completed", "Rejected"],
+    enum: ["Pending", "Completed", "Rejected", "Invalid UPI"],
   },
   WithdrawlReq_Date: {
     type: Date,
@@ -36,6 +43,7 @@ const Withdrawls_schema = new mongoose.Schema({
   },
   WithdrawlComp_Date: {
     type: Date,
+    default: null,
   },
 });
 

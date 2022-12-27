@@ -61,11 +61,12 @@ route.post("/createWithdrawls", Get_User_id, async (req, res) => {
     if (Iswithdrawlpending) {
       return res
         .status(200)
-        .send("One Withdrawls is already Pending, Let Them complete first");
+        .send("One Withdrawal is already Pending, Let That complete first");
     } else {
       const new_Withdrawls = new Withdrawls({
         User: req.user.id,
-        Message: `Withdrawls of ${req.body.Amount} is Pending`,
+        Message: `Withdrawal of ${req.body.Amount} is`,
+        UPI_Id: req.body.UPI_Id,
         Amount: req.body.Amount,
         Status: "Pending",
         WithdrawlReq_Date: Date.now(),
@@ -74,7 +75,7 @@ route.post("/createWithdrawls", Get_User_id, async (req, res) => {
       return res
         .status(200)
         .send(
-          "Withdrawl Requested, You Will get Your Money in your upi Within 24 Hours"
+          "Withdrawal Requested, Money Will be send to Requested upi Within 24 Hours"
         );
     }
   } catch (error) {
@@ -86,7 +87,6 @@ route.get("/getPendingWithdrawrequest", Get_User_id, async (req, res) => {
   try {
     let PendigWithdrawls = await Withdrawls.find({
       User: req.user.id,
-      Status: "Pending",
     });
     if (PendigWithdrawls) {
       return res.status(200).send(PendigWithdrawls);

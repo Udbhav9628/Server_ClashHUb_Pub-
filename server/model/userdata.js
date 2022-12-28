@@ -6,7 +6,7 @@ const userdata_schema = new mongoose.Schema({
     required: true,
     trim: true,
     minlength: 2,
-    maxlength: 50,
+    maxlength: 40,
   },
   Email: {
     type: String,
@@ -14,7 +14,7 @@ const userdata_schema = new mongoose.Schema({
     unique: true,
     trim: true,
     minlength: 2,
-    maxlength: 60,
+    maxlength: 50,
   },
   UserName: {
     type: String,
@@ -29,7 +29,7 @@ const userdata_schema = new mongoose.Schema({
     required: true,
     trim: true,
     minlength: 2,
-    maxlength: 100,
+    maxlength: 500,
   },
   FCMToken: {
     type: String,

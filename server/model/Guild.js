@@ -25,7 +25,7 @@ const Guild_Schema = new mongoose.Schema({
     required: [true, "Please Enter Guild's Description"],
     trim: true,
     minlength: 2,
-    maxlength: 60,
+    maxlength: 100,
   },
   Followers: [
     {

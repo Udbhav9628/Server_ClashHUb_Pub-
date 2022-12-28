@@ -23,7 +23,7 @@ const Guild_Transaction_schema = new mongoose.Schema({
     required: true,
     trim: true,
     minlength: 10,
-    maxlength: 100,
+    maxlength: 60,
   },
   Amount: {
     type: Number,

@@ -77,7 +77,6 @@ route.get("/getGuildtournaments/:id", Get_User_id, async (req, res) => {
 //Join Match Route - put Request
 route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
   const session = await mongoose.startSession();
-
   session.startTransaction();
   try {
     const match = await tournamentschema.findById(req.params.id);

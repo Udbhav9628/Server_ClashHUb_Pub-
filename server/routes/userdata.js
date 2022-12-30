@@ -100,13 +100,12 @@ route.put("/Login", async (req, res) => {
         UserName: user.UserName,
         PhotoUrl: user.PhotoUrl,
         Joined_Date: user.Date,
-        Wallet: user.Wallet_Coins,
         Auth_Token,
       });
     } else {
       return res.status(200).send({
         Login_Fail: true,
-        Message: "Register First Then Login",
+        Message: "You Don't Have an Account, Register Yourself First",
       });
     }
   } catch (error) {
@@ -114,19 +113,19 @@ route.put("/Login", async (req, res) => {
   }
 });
 
-//Geting Logged in User Details
-route.get("/getUserDetails", Get_User_id, async (req, res) => {
-  try {
-    let user = await userschema.findById(req.user.id);
-    if (!user) {
-      return res.status(500).send("User Not Exist May be");
-    } else {
-      return res.status(200).send(user);
-    }
-  } catch (error) {
-    return res.status(500).send("Something Goes Wrong");
-  }
-});
+// //Geting Logged in User Details
+// route.get("/getUserDetails", Get_User_id, async (req, res) => {
+//   try {
+//     let user = await userschema.findById(req.user.id);
+//     if (!user) {
+//       return res.status(500).send("SomeThing Goes Wrong");
+//     } else {
+//       return res.status(200).send(user);
+//     }
+//   } catch (error) {
+//     return res.status(500).send("Something Goes Wrong");
+//   }
+// });
 
 //Geting Specific User Details by id
 route.get("/getSpecificUserDetails/:id", Get_User_id, async (req, res) => {

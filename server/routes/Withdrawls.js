@@ -75,7 +75,7 @@ route.post("/createWithdrawls", Get_User_id, async (req, res) => {
       return res
         .status(200)
         .send(
-          "Withdrawal Requested, Money Will be send to Requested upi Within 24 Hours"
+          "Withdrawal Requested, Money Will be send to UPI Within 24 Hours"
         );
     }
   } catch (error) {

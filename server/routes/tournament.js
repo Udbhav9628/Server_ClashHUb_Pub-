@@ -81,7 +81,7 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
   try {
     const match = await tournamentschema.findById(req.params.id);
     if (!match) {
-      return res.status(404).send("Not Found");
+      return res.status(404).send("Something wrong");
     } else {
       const isJoined = match.Joined_User.find(
         (user) => user.UserId.toString() === req.user.id.toString()
@@ -91,7 +91,7 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
           .status(200)
           .json({ Sucess: false, Msg: "You Have already Joined" });
       } else {
-        if (match.Joined_User.length === match.Total_Players) {
+        if (match.Joined_User.length >= match.Total_Players) {
           return res.status(200).json({ Sucess: false, Msg: "Slots Full" });
         } else {
           const date = new Date(match.Date_Time);
@@ -227,14 +227,13 @@ route.post(
 //Check
 route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
   const session = await mongoose.startSession();
-
   session.startTransaction();
   try {
     const tournament_found = await tournamentschema.findById(req.params.id);
     if (!tournament_found) {
-      return res.status(404).send("Not Found");
+      return res.status(404).send("Something wrong");
     } else if (tournament_found.UserId.toString() !== req.user.id.toString()) {
-      return res.status(500).send("Not Allowed");
+      return res.status(500).send("Something wrong");
     } else {
       const date = new Date(tournament_found.Date_Time);
       const MatchTime_In_MS = date.getTime();
@@ -251,6 +250,13 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
             "OH HO! Match Has Been Cancelled Because You Did Not Publish Result within Time Limit, Time Limit is Within 4 Hours of Match Start Time"
           );
       }
+      let Total_Kills = 0;
+      req.body.Joined_User.forEach((data) => {
+        Total_Kills = Total_Kills + Number(data.Kills);
+      });
+      if (Total_Kills > req.body.Joined_User.length - 1) {
+        return res.status(200).send("SomeThing Goes Wrong");
+      }
       const response = await tournamentschema.findByIdAndUpdate(
         req.params.id,
         {
@@ -263,8 +269,10 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
       const Total_earning =
         response.Joined_User.length *
         (response.EntryFee - parseInt(response.Perkill_Prize));
-      const Guild_Amount = Total_earning;
-
+      let Guild_Amount = Total_earning;
+      if (tournament_found.Joined_User.length > 1) {
+        Guild_Amount = Guild_Amount + tournament_found.Perkill_Prize;
+      }
       if (Guild_Amount > 0) {
         await UserModal.findByIdAndUpdate(
           req.user.id,
@@ -275,7 +283,6 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
           },
           { new: true, runValidators: true, session }
         );
-
         const New_Guild_Transaction = new GuildTransaction({
           MatchId: response._id,
           GuildId: response.GuildId,

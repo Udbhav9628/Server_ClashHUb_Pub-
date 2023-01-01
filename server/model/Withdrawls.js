@@ -32,10 +32,20 @@ const Withdrawls_schema = new mongoose.Schema({
     min: 0,
     max: 10000,
   },
+  Is_Club: {
+    type: Boolean,
+    required: true,
+  },
   Status: {
     type: String,
     required: true,
-    enum: ["Pending", "Completed", "Rejected", "Invalid UPI"],
+    enum: [
+      "Pending",
+      "Completed",
+      "Rejected",
+      "Rejected Low Balance",
+      "Rejected Invalid UPI",
+    ],
   },
   WithdrawlReq_Date: {
     type: Date,

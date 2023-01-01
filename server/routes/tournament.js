@@ -104,7 +104,7 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
           }
           const User = await UserModal.findById(req.user.id);
           if (User) {
-            let New_Amount = User.Wallet_Coins - req.body.Amount_to_be_paid;
+            let New_Amount = User.Wallet_Coins - match.EntryFee;
             if (
               New_Amount >= 0 &&
               match.Joined_User.length < match.Total_Players
@@ -120,7 +120,7 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
                 req.user.id,
                 {
                   $inc: {
-                    Wallet_Coins: -parseInt(req.body.Amount_to_be_paid),
+                    Wallet_Coins: -parseInt(match.EntryFee),
                   },
                 },
                 { new: true, runValidators: true, session }
@@ -129,9 +129,9 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
                 User: req.user.id,
                 Transaction_Id: match._id, // Match Id
                 Message:
-                  `Deducted ${req.body.Amount_to_be_paid} For Joining` +
-                  ` ${match.Game_Name}`,
-                Amount: req.body.Amount_to_be_paid,
+                  `Joined` +
+                  ` ${req.body.MatchIdLast2_char} ${match.Game_Name} Match`,
+                Amount: match.EntryFee,
                 Type: false, //means deducted
                 Date: Date.now(),
               });
@@ -378,7 +378,7 @@ route.put("/UpdateVideo_Details/:id", Get_User_id, async (req, res) => {
   try {
     const tournament_found = await tournamentschema.findById(req.params.id);
     if (!tournament_found) {
-      return res.status(404).send("Not Found");
+      return res.status(404).send("Something Went Wrong");
     } else if (tournament_found.UserId.toString() !== req.user.id.toString()) {
       return res.status(500).send("Not Allowed");
     } else {
@@ -402,7 +402,9 @@ route.put("/UpdateVideo_Details/:id", Get_User_id, async (req, res) => {
           return res.status(200).send("Shared Sucessfully");
         }
       } else {
-        return res.status(200).send("Match Cancelled or Not Started Yet");
+        return res
+          .status(200)
+          .send("Enter Room Details First Before Broadcasting");
       }
     }
   } catch (error) {

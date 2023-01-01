@@ -56,6 +56,7 @@ route.post("/createWithdrawls", Get_User_id, async (req, res) => {
   try {
     const Iswithdrawlpending = await Withdrawls.findOne({
       User: req.user.id,
+      Is_Club: req.body.Is_Club,
       Status: "Pending",
     });
     if (Iswithdrawlpending) {
@@ -68,6 +69,7 @@ route.post("/createWithdrawls", Get_User_id, async (req, res) => {
         Message: `Withdrawal of ${req.body.Amount} is`,
         UPI_Id: req.body.UPI_Id,
         Amount: req.body.Amount,
+        Is_Club: req.body.Is_Club,
         Status: "Pending",
         WithdrawlReq_Date: Date.now(),
       });
@@ -83,17 +85,40 @@ route.post("/createWithdrawls", Get_User_id, async (req, res) => {
   }
 });
 
-route.get("/getPendingWithdrawrequest", Get_User_id, async (req, res) => {
-  try {
-    let PendigWithdrawls = await Withdrawls.find({
-      User: req.user.id,
-    });
-    if (PendigWithdrawls) {
-      return res.status(200).send(PendigWithdrawls);
+route.get(
+  "/getAll_Gamer_Wallet_Withdrawrequest",
+  Get_User_id,
+  async (req, res) => {
+    try {
+      let PendigWithdrawls = await Withdrawls.find({
+        User: req.user.id,
+        Is_Club: false,
+      });
+      if (PendigWithdrawls) {
+        return res.status(200).send(PendigWithdrawls);
+      }
+    } catch (error) {
+      return res.status(500).send("Something Goes Wrong");
     }
-  } catch (error) {
-    return res.status(500).send("Something Goes Wrong");
   }
-});
+);
+
+route.get(
+  "/getAll_Club_Wallet_Withdrawrequest",
+  Get_User_id,
+  async (req, res) => {
+    try {
+      let PendigWithdrawls = await Withdrawls.find({
+        User: req.user.id,
+        Is_Club: true,
+      });
+      if (PendigWithdrawls) {
+        return res.status(200).send(PendigWithdrawls);
+      }
+    } catch (error) {
+      return res.status(500).send("Something Goes Wrong");
+    }
+  }
+);
 
 module.exports = route;

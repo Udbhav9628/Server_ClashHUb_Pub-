@@ -46,6 +46,9 @@ route.get("/GetJoinedMatches", Get_User_id, async (req, res) => {
 //Get Matches which have videos only
 route.get("/GetVideosMatches", Get_User_id, async (req, res) => {
   try {
+    const Result_Per_Page = 20;
+    const Current_Page = Number(req.query.Page) || 1;
+    const Skip = Result_Per_Page * (Current_Page - 1);
     const Data = await tournamentschema
       .find({
         "RoomDetails.YT_Video_id": { $ne: null },
@@ -53,14 +56,15 @@ route.get("/GetVideosMatches", Get_User_id, async (req, res) => {
       })
       .sort({
         Date_Time: -1,
-      });
-    return res.status(200).send({ Data });
+      })
+      .limit(Result_Per_Page)
+      .skip(Skip);
+    return res.status(200).send(Data);
   } catch (error) {
     return res.status(500).send("Something Goes Wrong");
   }
 });
 
-//For App Only
 route.get("/getGuildtournaments/:id", Get_User_id, async (req, res) => {
   try {
     const Data = await new Guild_Matches_Api_Feature(

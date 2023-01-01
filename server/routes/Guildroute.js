@@ -7,7 +7,12 @@ const { body, validationResult } = require("express-validator");
 //Read
 route.get("/fetchallGuild", Get_User_id, async (req, res) => {
   try {
-    const Data = await Guild_Schema.find({ OwnerId: { $ne: req.user.id } });
+    const Result_Per_Page = 20;
+    const Current_Page = Number(req.query.Page) || 1;
+    const Skip = Result_Per_Page * (Current_Page - 1);
+    const Data = await Guild_Schema.find({ OwnerId: { $ne: req.user.id } })
+      .limit(Result_Per_Page)
+      .skip(Skip);
     return res.status(200).send(Data);
   } catch (error) {
     return res.status(500).send("Something Goes Wrong");

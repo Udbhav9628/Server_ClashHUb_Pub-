@@ -294,7 +294,7 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
           Message:
             "Added For " +
             response.Joined_User.length +
-            ` Players in ${response.Game_Name}`,
+            ` Players in ${req.body._id} ${response.Game_Name}`,
           Amount: Guild_Amount,
           Type: true,
           Date: Date.now(),
@@ -387,9 +387,15 @@ route.put("/UpdateVideo_Details/:id", Get_User_id, async (req, res) => {
       return res.status(500).send("Not Allowed");
     } else {
       if (
-        tournament_found.Match_Status === "Started" &&
-        tournament_found.Date_Time.getTime() > Date.now() - 14400000
+        tournament_found.Match_Status === "Started" ||
+        tournament_found.Match_Status === "Completed"
       ) {
+        const tournament = await tournamentschema.findOne({
+          "RoomDetails.YT_Video_id": req.body.YT_Video_id,
+        });
+        if (tournament) {
+          return res.status(200).send("This Video Already Exist");
+        }
         if (tournament_found.RoomDetails.YT_Video_id === null) {
           req.body;
           await tournamentschema.findByIdAndUpdate(

@@ -84,7 +84,7 @@ const tournament_schema = new mongoose.Schema({
   Match_Status: {
     type: String,
     required: true,
-    enum: ["Scheduled", "Started", "Completed"], //Started means room id password updated only
+    enum: ["Scheduled", "Started", "Completed"],
   },
   RoomDetails: {
     Name: {

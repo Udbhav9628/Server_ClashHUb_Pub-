@@ -2,6 +2,7 @@ const express = require("express");
 const route = express.Router();
 const Withdrawls = require("../model/Withdrawls");
 const Get_User_id = require("../Middleware/getuserid");
+const UserModal = require("../model/userdata");
 
 //RazorPayX Payout Route
 // route.post("/createWithdrawls", Get_User_id, async (req, res) => {
@@ -46,7 +47,6 @@ const Get_User_id = require("../Middleware/getuserid");
 //         Authorization: "ApiKey myUser:verySecretAPIKey",
 //       },
 //     });
-//     console.log(response);
 //   } catch (error) {
 //     return res.status(500).send("Something Goes Wrong");
 //   }
@@ -59,10 +59,21 @@ route.post("/createWithdrawls", Get_User_id, async (req, res) => {
       Is_Club: req.body.Is_Club,
       Status: "Pending",
     });
+
+    const User = await UserModal.findById(req.user.id);
+    let WalletCoine_User_have = 0;
+    if (req.body.Is_Club) {
+      WalletCoine_User_have = User.Club_Wallet_Coins;
+    } else {
+      WalletCoine_User_have = User.Wallet_Coins;
+    }
+
     if (Iswithdrawlpending) {
       return res
         .status(200)
         .send("One Withdrawal is already Pending, Let That complete first");
+    } else if (WalletCoine_User_have < req.body.Amount) {
+      return res.status(200).send("Low Ballance");
     } else {
       const new_Withdrawls = new Withdrawls({
         User: req.user.id,

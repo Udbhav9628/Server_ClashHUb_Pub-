@@ -59,7 +59,7 @@ const tournament_schema = new mongoose.Schema({
         required: true,
         trim: true,
         minlength: 2,
-        maxlength: 30,
+        maxlength: 50,
       },
       InGameName: {
         type: String,
@@ -104,7 +104,6 @@ const tournament_schema = new mongoose.Schema({
     YT_Video_id: {
       type: String,
       default: null,
-      unique: true,
       trim: true,
       minlength: 2,
       maxlength: 50,

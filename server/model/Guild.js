@@ -43,6 +43,10 @@ const Guild_Schema = new mongoose.Schema({
       },
     },
   ],
+  How_Many_Followers: {
+    type: Number,
+    required: true,
+  },
 });
 
 const GuildSchema = mongoose.model("Guild", Guild_Schema);

@@ -6,7 +6,6 @@ const { v4: uuidv4 } = require("uuid");
 const TransactionModal = require("../model/Transaction");
 const GuildTransaction = require("../model/GuildTransaction");
 const Get_User_id = require("../Middleware/getuserid");
-const { body, validationResult } = require("express-validator");
 const Guild_Schema = require("../model/Guild");
 const {
   Api_Feature,
@@ -166,66 +165,49 @@ route.put("/Jointournament/:id", Get_User_id, async (req, res) => {
 });
 
 //Create -- Admin Route
-route.post(
-  "/createtournament",
-  Get_User_id,
-  [
-    body("Game_Name", "Game_Name must be atleaset 3 char").isLength({ min: 3 }),
-    body("Perkill_Prize", "Perkill_Prize must be atleaset 1 char").isLength({
-      min: 1,
-    }),
-    body("EntryFee", "EntryFee must be atleaset 1 char").isLength({
-      min: 1,
-    }),
-  ],
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(403).json({ errors: errors.array() });
-    }
-    try {
-      let Guild = await Guild_Schema.findById(req.body.Guild_Id);
-      if (!Guild) {
-        return res.status(200).send({
-          status: false,
-          Message: "Guild Does not Exist , Create First",
-        });
-      } else {
-        if (Guild.Followers.length < 250 && Number(req.body.EntryFee) > 25) {
-          return res
-            .status(200)
-            .send(
-              "Club Needs At least 250 Followers To Take Entry Fees More Then Rs 25"
-            );
-        }
-        if (Number(req.body.Perkill_Prize) > Number(req.body.EntryFee)) {
-          return res
-            .status(200)
-            .send(
-              "Per Kill Prize is More Then Entry Fees , It Should be less or Equals to Entry Fee"
-            );
-        }
-        const new_tournament = new tournamentschema({
-          GuildId: Guild._id,
-          UserId: req.user.id,
-          Game_Name: req.body.Game_Name,
-          GameType: req.body.GameType,
-          Map: req.body.GameMap,
-          Total_Players: req.body.Total_Players,
-          EntryFee: req.body.EntryFee,
-          Perkill_Prize: req.body.Perkill_Prize,
-          Match_Status: "Scheduled",
-          Date_Time: req.body.Date_Time,
-        });
-        new_tournament.save().then((data) => {
-          return res.status(200).send("Match Published Sucessfully");
-        });
+route.post("/createtournament", Get_User_id, async (req, res) => {
+  try {
+    let Guild = await Guild_Schema.findById(req.body.Guild_Id);
+    if (!Guild) {
+      return res.status(200).send({
+        status: false,
+        Message: "Guild Does not Exist , Create First",
+      });
+    } else {
+      if (Guild.Followers.length < 250 && Number(req.body.EntryFee) > 25) {
+        return res
+          .status(200)
+          .send(
+            "Club Needs At least 250 Followers To Take Entry Fees More Then Rs 25"
+          );
       }
-    } catch (error) {
-      return res.status(500).send("Something Goes Wrong");
+      if (Number(req.body.Perkill_Prize) > Number(req.body.EntryFee)) {
+        return res
+          .status(200)
+          .send(
+            "Per Kill Prize is More Then Entry Fees , It Should be less or Equals to Entry Fee"
+          );
+      }
+      const new_tournament = new tournamentschema({
+        GuildId: Guild._id,
+        UserId: req.user.id,
+        Game_Name: req.body.Game_Name,
+        GameType: req.body.GameType,
+        Map: req.body.GameMap,
+        Total_Players: req.body.Total_Players,
+        EntryFee: req.body.EntryFee,
+        Perkill_Prize: req.body.Perkill_Prize,
+        Match_Status: "Scheduled",
+        Date_Time: req.body.Date_Time,
+      });
+      new_tournament.save().then(() => {
+        return res.status(200).send("Match Published Sucessfully");
+      });
     }
+  } catch (error) {
+    return res.status(500).send("SomeThing Went Wrong");
   }
-);
+});
 
 //Update Result -- Admin Route
 //Check

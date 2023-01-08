@@ -2,7 +2,6 @@ const express = require("express");
 const route = express.Router();
 const Guild_Schema = require("../model/Guild");
 const Get_User_id = require("../Middleware/getuserid");
-const { body, validationResult } = require("express-validator");
 
 //Read
 route.get("/fetchallGuild", Get_User_id, async (req, res) => {
@@ -11,6 +10,9 @@ route.get("/fetchallGuild", Get_User_id, async (req, res) => {
     const Current_Page = Number(req.query.Page) || 1;
     const Skip = Result_Per_Page * (Current_Page - 1);
     const Data = await Guild_Schema.find({ OwnerId: { $ne: req.user.id } })
+      .sort({
+        How_Many_Followers: -1,
+      })
       .limit(Result_Per_Page)
       .skip(Skip);
     return res.status(200).send(Data);
@@ -41,56 +43,35 @@ route.get("/getUserGuildDetails", Get_User_id, async (req, res) => {
 });
 
 //Create User Unique Guild
-route.post(
-  "/createUserUniqueGuild",
-  Get_User_id,
-  [
-    body("GuildName", "Guild Name must be atleaset 3 char").isLength({
-      min: 3,
-    }),
-    body("GuildID", "Guild ID must be atleaset 3 char").isLength({
-      min: 3,
-    }),
-    body(
-      "GuildDescription",
-      "Guild Description must be atleaset 3 char"
-    ).isLength({
-      min: 3,
-    }),
-  ],
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    try {
-      let isGuildallreadyAvailable = await Guild_Schema.findOne({
-        OwnerId: req.user.id,
+route.post("/createUserUniqueGuild", Get_User_id, async (req, res) => {
+  try {
+    let isGuildallreadyAvailable = await Guild_Schema.findOne({
+      OwnerId: req.user.id,
+    });
+    if (isGuildallreadyAvailable) {
+      return res.status(503).send("One User can have one guild only");
+    } else {
+      let Guild = await Guild_Schema.findOne({
+        GuildID: req.body.GuildID,
       });
-      if (isGuildallreadyAvailable) {
-        return res.status(503).send("One User can have one guild only");
+      if (Guild) {
+        return res.status(501).send("Club ID already Taken, Chose Another");
       } else {
-        let Guild = await Guild_Schema.findOne({
+        const new_Guild = new Guild_Schema({
+          OwnerId: req.user.id,
           GuildID: req.body.GuildID,
+          GuildName: req.body.GuildName,
+          GuildDescription: req.body.GuildDescription,
+          How_Many_Followers: 0,
         });
-        if (Guild) {
-          return res.status(501).send("Club ID already Taken, Chose Another");
-        } else {
-          const new_Guild = new Guild_Schema({
-            OwnerId: req.user.id,
-            GuildID: req.body.GuildID,
-            GuildName: req.body.GuildName,
-            GuildDescription: req.body.GuildDescription,
-          });
-          await new_Guild.save();
-          return res.status(200).send("created sucessfully");
-        }
+        await new_Guild.save();
+        return res.status(200).send("created sucessfully");
       }
-    } catch (error) {
-      return res.status(500).send("Something Goes Wrong");
     }
+  } catch (error) {
+    return res.status(500).send("Something Goes Wrong");
   }
-);
+});
 
 route.put("/Join_Guild/:id", Get_User_id, async (req, res) => {
   try {
@@ -108,6 +89,7 @@ route.put("/Join_Guild/:id", Get_User_id, async (req, res) => {
           FollowersId: req.user.id,
           FollowersName: req.user.Name,
         };
+        GuildFollower.How_Many_Followers = GuildFollower.How_Many_Followers + 1;
         GuildFollower.Followers.push(User_Details);
         await GuildFollower.save();
         return res.status(200).send("Joined Successfully");

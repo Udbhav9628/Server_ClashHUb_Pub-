@@ -16,7 +16,7 @@ const Guild_Transaction_schema = new mongoose.Schema({
     required: true,
     trim: true,
     minlength: 2,
-    maxlength: 40,
+    maxlength: 200,
   },
   Message: {
     type: String,

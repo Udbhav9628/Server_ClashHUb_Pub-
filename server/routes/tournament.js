@@ -22,7 +22,7 @@ route.get("/fetchalltournament", Get_User_id, async (req, res) => {
       req.query,
       req.user.id
     ).Filter();
-    return res.send({ Data });
+    return res.status(200).send({ Data });
   } catch (error) {
     return res.status(500).send("Something Goes Wrong");
   }
@@ -217,7 +217,7 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
   try {
     const tournament_found = await tournamentschema.findById(req.params.id);
     if (!tournament_found) {
-      return res.status(404).send("Something wrong");
+      return res.status(200).send("Match Does Not Exist");
     } else if (tournament_found.UserId.toString() !== req.user.id.toString()) {
       return res.status(500).send("Something wrong");
     } else {
@@ -240,8 +240,12 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
       req.body.Joined_User.forEach((data) => {
         Total_Kills = Total_Kills + Number(data.Kills);
       });
-      if (Total_Kills > req.body.Joined_User.length - 1) {
-        return res.status(200).send("SomeThing Goes Wrong");
+      if (Total_Kills > tournament_found.Joined_User.length - 1) {
+        return res
+          .status(200)
+          .send(
+            "Total Kills of All Player Combined can't be more then No of Total Player Joined in this Match - 1, Because 1 Player Remains Alive N"
+          );
       }
       const response = await tournamentschema.findByIdAndUpdate(
         req.params.id,

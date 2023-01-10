@@ -60,6 +60,7 @@ route.post("/createUserUniqueGuild", Get_User_id, async (req, res) => {
         const new_Guild = new Guild_Schema({
           OwnerId: req.user.id,
           GuildID: req.body.GuildID,
+          Profile_Pic: req.body.GuildID,
           GuildName: req.body.GuildName,
           GuildDescription: req.body.GuildDescription,
           How_Many_Followers: 0,
@@ -67,6 +68,29 @@ route.post("/createUserUniqueGuild", Get_User_id, async (req, res) => {
         await new_Guild.save();
         return res.status(200).send("created sucessfully");
       }
+    }
+  } catch (error) {
+    return res.status(500).send("Something Goes Wrong");
+  }
+});
+
+//UpdatePic
+route.put("/Update_Club_Pic", Get_User_id, async (req, res) => {
+  try {
+    const Found_Guild = await Guild_Schema.findById(req.body.Club_Id);
+    if (!Found_Guild) {
+      return res.status(404).send("Something wrong");
+    } else if (Found_Guild.OwnerId.toString() !== req.user.id.toString()) {
+      return res.status(500).send("Something wrong");
+    } else {
+      await Guild_Schema.findByIdAndUpdate(
+        req.body.Club_Id,
+        {
+          Profile_Pic: req.body.PicString,
+        },
+        { new: true, runValidators: true }
+      );
+      return res.status(200).send("Profile Picture Updated");
     }
   } catch (error) {
     return res.status(500).send("Something Goes Wrong");

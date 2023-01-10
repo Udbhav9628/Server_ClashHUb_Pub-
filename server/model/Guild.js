@@ -17,8 +17,15 @@ const Guild_Schema = new mongoose.Schema({
     type: String,
     required: [true, "Please Enter Guild's ID"],
     trim: true,
-    minlength: 2,
+    minlength: 1,
     maxlength: 30,
+  },
+  Profile_Pic: {
+    type: String,
+    required: [true, "Please Enter Profile_Pic"],
+    trim: true,
+    minlength: 1,
+    maxlength: 50,
   },
   GuildDescription: {
     type: String,

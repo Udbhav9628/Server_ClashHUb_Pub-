@@ -28,12 +28,12 @@ const tournament_schema = new mongoose.Schema({
     required: [true, "Please Provide Map"],
     trim: true,
     minlength: 3,
-    maxlength: 30,
+    maxlength: 40,
   },
   Total_Players: {
     type: Number,
     required: [true, "Please Enter Players"],
-    enum: [20, 40, 60, 80, 100],
+    enum: [10, 20, 30, 40, 50],
   },
   EntryFee: {
     type: Number,

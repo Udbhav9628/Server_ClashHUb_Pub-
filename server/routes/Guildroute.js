@@ -10,6 +10,7 @@ route.get("/fetchallGuild", Get_User_id, async (req, res) => {
     const Current_Page = Number(req.query.Page) || 1;
     const Skip = Result_Per_Page * (Current_Page - 1);
     const Data = await Guild_Schema.find({ OwnerId: { $ne: req.user.id } })
+      .select("-Followers")
       .sort({
         How_Many_Followers: -1,
       })
@@ -22,10 +23,11 @@ route.get("/fetchallGuild", Get_User_id, async (req, res) => {
 });
 
 //Get User's Guild Details
-//To Do - Find by is istead of findone if possible
 route.get("/getUserGuildDetails", Get_User_id, async (req, res) => {
   try {
-    let Guild = await Guild_Schema.findOne({ OwnerId: req.user.id });
+    let Guild = await Guild_Schema.findOne({ OwnerId: req.user.id }).select(
+      "-Followers"
+    );
     if (!Guild) {
       return res.status(200).send({
         status: false,
@@ -36,6 +38,20 @@ route.get("/getUserGuildDetails", Get_User_id, async (req, res) => {
         status: true,
         Message: Guild,
       });
+    }
+  } catch (error) {
+    return res.status(500).send("Something Goes Wrong");
+  }
+});
+
+//Get user Guild Followers
+route.get("/getUserGuildFollowDetails", Get_User_id, async (req, res) => {
+  try {
+    let Guild = await Guild_Schema.findOne({ OwnerId: req.user.id });
+    if (!Guild) {
+      return res.status(400).send("Something went wrong");
+    } else {
+      return res.status(200).send(Guild.Followers);
     }
   } catch (error) {
     return res.status(500).send("Something Goes Wrong");

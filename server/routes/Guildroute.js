@@ -45,13 +45,34 @@ route.get("/getUserGuildDetails", Get_User_id, async (req, res) => {
 });
 
 //Get user Guild Followers
-route.get("/getUserGuildFollowDetails", Get_User_id, async (req, res) => {
+route.get(
+  "/getUserGuildFollowDetails/:Club_id",
+  Get_User_id,
+  async (req, res) => {
+    try {
+      let Guild = await Guild_Schema.findById(req.params.Club_id);
+      if (!Guild) {
+        return res.status(400).send("Something went wrong");
+      } else {
+        return res.status(200).send(Guild.Followers);
+      }
+    } catch (error) {
+      return res.status(500).send("Something Goes Wrong");
+    }
+  }
+);
+
+//Check Is Club Joined
+route.get("/Is_Club_Joined/:Club_Id", Get_User_id, async (req, res) => {
   try {
-    let Guild = await Guild_Schema.findOne({ OwnerId: req.user.id });
-    if (!Guild) {
+    const Is_Joined = await Guild_Schema.findOne({
+      _id: req.params.Club_Id,
+      "Followers.FollowersId": req.user.id,
+    });
+    if (!Is_Joined) {
       return res.status(400).send("Something went wrong");
     } else {
-      return res.status(200).send(Guild.Followers);
+      return res.status(200).send("Joined");
     }
   } catch (error) {
     return res.status(500).send("Something Goes Wrong");
@@ -143,7 +164,7 @@ route.put("/Join_Guild/:id", Get_User_id, async (req, res) => {
 //Geting Specific Club Details by id
 route.get("/getSpecificClubDetails/:id", Get_User_id, async (req, res) => {
   try {
-    let Club = await Guild_Schema.findById(req.params.id);
+    const Club = await Guild_Schema.findById(req.params.id);
     if (!Club) {
       return res.status(500).send("Club Not Exist May be");
     } else {

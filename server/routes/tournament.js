@@ -219,9 +219,7 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
     const tournament_found = await tournamentschema.findById(req.params.id);
     if (!tournament_found) {
       return res.status(200).send("Match Does Not Exist");
-    } else if (tournament_found.UserId.toString() !== req.user.id.toString()) {
-      return res.status(500).send("Something wrong");
-    } else {
+    } else if (tournament_found.UserId.toString() === req.user.id.toString()) {
       const date = new Date(tournament_found.Date_Time);
       const MatchTime_In_MS = date.getTime();
       const now = new Date().getTime();
@@ -236,6 +234,9 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
           .send(
             "OH HO! Match Has Been Cancelled Because You Did Not Publish Result within Time Limit, Time Limit is Within 4 Hours of Match Start Time"
           );
+      }
+      if (tournament_found.Match_Status === "Completed") {
+        return res.status(200).send("Match Result Already Published");
       }
       let Total_Kills = 0;
       req.body.Joined_User.forEach((data) => {
@@ -314,6 +315,8 @@ route.put("/UpdateResult/:id", Get_User_id, async (req, res) => {
       });
       await session.commitTransaction();
       return res.status(200).send("Result Published");
+    } else {
+      return res.status(500).send("Something wrong");
     }
   } catch (error) {
     await session.abortTransaction();
@@ -329,9 +332,7 @@ route.put("/UpdateRoom_Details/:id", Get_User_id, async (req, res) => {
     const tournament_found = await tournamentschema.findById(req.params.id);
     if (!tournament_found) {
       return res.status(404).send("Not Found");
-    } else if (tournament_found.UserId.toString() !== req.user.id.toString()) {
-      return res.status(500).send("Not Allowed");
-    } else {
+    } else if (tournament_found.UserId.toString() === req.user.id.toString()) {
       const date = new Date(tournament_found.Date_Time);
       const milliseconds = date.getTime();
       if (Date.now() + 600000 >= milliseconds) {
@@ -358,6 +359,8 @@ route.put("/UpdateRoom_Details/:id", Get_User_id, async (req, res) => {
       } else {
         return res.status(200).send("Started Already");
       }
+    } else {
+      return res.status(500).send("Not Allowed");
     }
   } catch (error) {
     return res.status(500).send("Something Goes Wrong");
@@ -370,9 +373,7 @@ route.put("/UpdateVideo_Details/:id", Get_User_id, async (req, res) => {
     const tournament_found = await tournamentschema.findById(req.params.id);
     if (!tournament_found) {
       return res.status(404).send("Something Went Wrong");
-    } else if (tournament_found.UserId.toString() !== req.user.id.toString()) {
-      return res.status(500).send("Not Allowed");
-    } else {
+    } else if (tournament_found.UserId.toString() === req.user.id.toString()) {
       if (
         tournament_found.Match_Status === "Started" ||
         tournament_found.Match_Status === "Completed"
@@ -403,6 +404,8 @@ route.put("/UpdateVideo_Details/:id", Get_User_id, async (req, res) => {
           .status(200)
           .send("Enter Room Details First Before Broadcasting");
       }
+    } else {
+      return res.status(500).send("Not Allowed");
     }
   } catch (error) {
     return res.status(500).send("Something Goes Wrong");

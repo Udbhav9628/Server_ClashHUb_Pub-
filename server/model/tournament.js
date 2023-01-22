@@ -66,7 +66,7 @@ const tournament_schema = new mongoose.Schema({
         required: true,
         trim: true,
         minlength: 2,
-        maxlength: 30,
+        maxlength: 50,
       },
       Kills: {
         type: Number,

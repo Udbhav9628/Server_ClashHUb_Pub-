@@ -1,2 +1,2 @@
 # backend
-Backend for Note app
+ClashHub NodeJS Server

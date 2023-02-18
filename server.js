@@ -42,7 +42,7 @@ const server = http_server.listen(port, () => {
 process.on("unhandledRejection", (err) => {
   console.log(`Error: ${err.message}`);
   console.log(
-    "Shutting down the server because of unhendled rejection error, ::"
+    "Shutting down the server because of unhendled rejection error, :::::::::::::::::::"
   );
   server.close(() => {
     process.exit(1);

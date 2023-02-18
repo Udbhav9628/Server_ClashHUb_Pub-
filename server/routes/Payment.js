@@ -61,7 +61,7 @@ route.post("/itsasecreat", async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const SECREAT = process.env.VERIFY_SECREAT;
+    const SECREAT = process.env.ORDER_SECREAT;
     const expectedSignature = crypto
       .createHmac("sha256", SECREAT)
       .update(JSON.stringify(req.body))
